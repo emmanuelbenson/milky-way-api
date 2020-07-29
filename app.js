@@ -1,8 +1,6 @@
 const express = require("express");
 const app = express();
 
-const { ModelSyncer } = require("./utils/syncModels");
-
 require("dotenv").config();
 
 // Routes
@@ -31,16 +29,9 @@ app.use("/api/v1/customer", adminRoutes);
 
 app.use((error, req, res, next) => {
   const status = error.statusCode || 500;
-  const message = error.message;
+  const message = status == 500 ? "Internal server error" : error.message;
   const data = error.data;
   res.status(status).json({ message: message, data: data });
 });
 
-ModelSyncer()
-  .sync()
-  .then(() => {
-    app.listen(process.env.NODE_ENV_PORT || 3000);
-  })
-  .catch((err) => {
-    console.log(err);
-  });
+app.listen(process.env.NODE_ENV_PORT || 3000);

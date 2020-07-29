@@ -1,0 +1,7 @@
+module.exports = {
+  ADMIN_TYPE: 1000,
+  VENDOR: 2000,
+  CUSTOMER_TYPE: 3000,
+  EXPIRED: "expired",
+  UNEXPIRED: "unexpired",
+};

@@ -27,6 +27,10 @@ module.exports = {
         type: Sequelize.STRING,
         allowNull: false,
       },
+      userType: {
+        type: Sequelize.STRING,
+        allowNull: false,
+      },
       activationCode: {
         type: Sequelize.STRING,
       },

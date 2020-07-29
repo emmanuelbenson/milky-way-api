@@ -21,6 +21,10 @@ const User = sequelize.define("user", {
     type: Sequelize.STRING,
     allowNull: false,
   },
+  userType: {
+    type: Sequelize.INTEGER,
+    allowNull: false,
+  },
   activationCode: {
     type: Sequelize.STRING,
   },

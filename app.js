@@ -24,8 +24,8 @@ app.use((req, res, next) => {
 
 app.use("/api/v1/auth", authRoutes);
 app.use("/api/v1/admin", adminRoutes);
-app.use("/api/v1/vendor", adminRoutes);
-app.use("/api/v1/customer", adminRoutes);
+app.use("/api/v1/vendor", vendorRoutes);
+app.use("/api/v1/customer", customerRoutes);
 
 app.use((error, req, res, next) => {
   const status = error.statusCode || 500;

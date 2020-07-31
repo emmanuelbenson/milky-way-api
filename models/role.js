@@ -2,7 +2,7 @@ const { Sequelize, Model } = require("sequelize");
 
 const sequelize = require("../utils/database");
 
-class Profile extends Model {}
+class Role extends Model {}
 Profile.init(
   {
     id: {
@@ -11,20 +11,15 @@ Profile.init(
       allowNull: false,
       primaryKey: true,
     },
-    userId: {
-      type: Sequelize.INTEGER,
-      allowNull: false,
-    },
-    firstName: {
+    name: {
       type: Sequelize.STRING,
       allowNull: false,
     },
-    lastName: {
-      type: Sequelize.STRING,
-      allowNull: false,
+    description: {
+      type: Sequelize.TEXT,
     },
   },
-  { sequelize, modelName: "profile" }
+  { sequelize, modelName: "roles", timestamps: false }
 );
 
-module.exports = Profile;
+module.exports = Role;

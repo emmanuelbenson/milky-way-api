@@ -1,7 +1,5 @@
 require("dotenv").config();
 const { validationResult } = require("express-validator");
-const Constants = require("../constants/Constants");
-const Status = require("../constants/status");
 
 const accountMgr = require("../services/accountManager");
 

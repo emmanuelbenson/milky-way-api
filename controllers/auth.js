@@ -129,9 +129,14 @@ exports.signin = (req, res, next) => {
             error.data = errors;
             throw error;
           }
-          const token = jwt.sign({}, process.env.JWT_SECRET, {
-            expiresIn: "30s",
-          });
+          const token = jwt.sign(
+            { userId: user.id, uuid: user.uuid, userType: user.userType },
+            process.env.JWT_SECRET,
+            {
+              expiresIn: "1m",
+            }
+          );
+          console.log(user);
           const data = {
             token: token,
             userId: user.userId,

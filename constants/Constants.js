@@ -4,4 +4,6 @@ module.exports = {
   CUSTOMER_TYPE: 3000,
   EXPIRED: "expired",
   UNEXPIRED: "unexpired",
+  ACTIVATE: 1,
+  DEACTIVATE: 0,
 };

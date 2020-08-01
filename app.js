@@ -34,4 +34,6 @@ app.use((error, req, res, next) => {
   res.status(status).json({ message: message, data: data });
 });
 
-app.listen(process.env.NODE_ENV_PORT || 3000);
+const port = process.env.port || process.env.NODE_ENV_PORT;
+
+app.listen(port);

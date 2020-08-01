@@ -1,11 +1,11 @@
 {
   "local": {
-    "username": "root",
-    "password": "root",
-    "database": "milkyway_local",
-    "host": "127.0.0.1",
+    "username": "doadmin",
+    "password": "sd8blyc8mm6rabfo",
+    "database": "defaultdb",
+    "host": "milky-waydb-do-user-4390099-0.a.db.ondigitalocean.com",
     "dialect": "mysql",
-    "port": "3307"
+    "port": "25060"
   },
   "development": {
     "username": "root",
@@ -24,11 +24,11 @@
     "port": "3307"
   },
   "production": {
-    "username": "root",
-    "password": null,
-    "database": "milkyway",
-    "host": "127.0.0.1",
+    "username": "doadmin",
+    "password": "sd8blyc8mm6rabfo",
+    "database": "defaultdb",
+    "host": "milky-waydb-do-user-4390099-0.a.db.ondigitalocean.com",
     "dialect": "mysql",
-    "port": "3307"
+    "port": "25060"
   }
 }

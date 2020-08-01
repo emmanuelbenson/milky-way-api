@@ -6,7 +6,8 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "nodemon app.js",
-    "start": "node app.js"
+    "start": "set NODE_ENV=development&& node app.js",
+    "start-prod": "set NODE_ENV=production&& node app.js"
   },
   "author": "Emmanuel C. Benson",
   "license": "ISC",
@@ -22,5 +23,8 @@
     "sequelize": "^6.3.3",
     "sequelize-cli": "^6.2.0",
     "uuidv4": "^6.2.0"
+  },
+  "engines": {
+    "node": "12.16.2"
   }
 }

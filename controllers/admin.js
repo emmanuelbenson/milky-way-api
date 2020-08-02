@@ -18,7 +18,9 @@ exports.toggleAccountActivation = (req, res, next) => {
     req.body.action === Status.ACTIVATE
       ? Constants.ACTIVATE
       : Constants.DEACTIVATE;
+
   const uuid = req.body.uuid;
+
   let activation;
 
   accountMgr
@@ -27,7 +29,7 @@ exports.toggleAccountActivation = (req, res, next) => {
       if (result) {
         let msg = "Account have been ";
         msg +=
-          accountAction === Status.ACTIVATE
+          accountAction === Constants.ACTIVATE
             ? Status.ACTIVATED
             : Status.DEACTIVATED;
         res.status(201).json({ message: msg });

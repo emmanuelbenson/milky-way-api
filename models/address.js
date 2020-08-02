@@ -13,6 +13,7 @@ const Address = sequelize.define("address", {
   userId: {
     type: Sequelize.INTEGER,
     allowNull: false,
+    unique: true,
   },
   street: {
     type: Sequelize.STRING,

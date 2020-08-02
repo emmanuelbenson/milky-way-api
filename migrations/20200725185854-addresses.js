@@ -18,6 +18,7 @@ module.exports = {
       userId: {
         type: Sequelize.INTEGER,
         allowNull: false,
+        unique: true,
       },
       street: {
         type: Sequelize.STRING,
@@ -25,7 +26,6 @@ module.exports = {
       lga: {
         type: Sequelize.STRING,
         allowNull: false,
-        unique: true,
       },
       state: {
         type: Sequelize.STRING,
@@ -36,11 +36,11 @@ module.exports = {
         allowNull: false,
       },
       longitude: {
-        type: Sequelize.INTEGER,
+        type: Sequelize.STRING,
         allowNull: true,
       },
       latitude: {
-        type: Sequelize.INTEGER,
+        type: Sequelize.STRING,
         allowNull: true,
       },
       createdAt: {

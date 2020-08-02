@@ -11,10 +11,11 @@ module.exports = (req, res, next) => {
 
   const requestSource = req.headers.source;
 
-  if (requestSource !== Constants.MOBILE || requestSource !== Constants.WEB) {
+  if (requestSource === Constants.MOBILE || requestSource === Constants.WEB) {
+    next();
+  } else {
     const error = new Error("Access denied!");
     error.statusCode = 400;
     throw error;
   }
-  next();
 };

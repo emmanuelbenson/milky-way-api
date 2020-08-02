@@ -133,10 +133,10 @@ exports.signin = (req, res, next) => {
             { userId: user.id, uuid: user.uuid, userType: user.userType },
             process.env.JWT_SECRET,
             {
-              expiresIn: "2m",
+              expiresIn: "2h",
             }
           );
-          console.log(user);
+
           const data = {
             token: token,
             userId: user.userId,

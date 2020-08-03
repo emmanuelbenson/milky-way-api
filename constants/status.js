@@ -7,4 +7,8 @@ module.exports = {
   CANCELLED: "cancelled",
   EXPIRED: "expired",
   UNEXPIRED: "unexpired",
+  ACTIVATED: "activated",
+  ACTIVATE: "activate",
+  DEACTIVATED: "deactivated",
+  DEACTIVATE: "deactivate",
 };

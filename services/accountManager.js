@@ -17,7 +17,7 @@ exports.getTypeByField = async (field) => {
   return response.dataValues.uuid;
 };
 
-exports.activateAccount = async (uuid) => {
+exports.toggleAccountActivation = async (uuid, action) => {
   let foundAccount;
   try {
     foundAccount = await User.findOne({ where: { uuid: uuid } });
@@ -30,7 +30,7 @@ exports.activateAccount = async (uuid) => {
     } else {
       try {
         const activated = await User.update(
-          { activated: Constants.ACTIVATE },
+          { activated: action },
           { where: { uuid: uuid } }
         );
         if (activated) {

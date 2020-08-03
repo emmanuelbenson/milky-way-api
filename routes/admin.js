@@ -1,20 +1,21 @@
 const express = require("express");
 const router = express.Router();
 
-const { body, validatorResult, check, oneOf } = require("express-validator");
+const { body } = require("express-validator");
 
 const adminController = require("../controllers/admin");
 const isAuth = require("../middlewares/is-auth");
 const isAdmin = require("../middlewares/is-admin");
 
 router.post(
-  "/activate-user",
+  "/toggle-activate-user",
   [
     isAuth,
     isAdmin,
-    body("uuid").not().isEmpty().withMessage("account uuid is required"),
+    body("uuid").not().isEmpty().trim().escape(),
+    body("action").not().isEmpty().trim().escape(),
   ],
-  adminController.activateAccount
+  adminController.toggleAccountActivation
 );
 
 module.exports = router;

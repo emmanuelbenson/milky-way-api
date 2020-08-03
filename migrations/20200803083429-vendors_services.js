@@ -8,7 +8,7 @@ module.exports = {
      * Example:
      * await queryInterface.createTable('users', { id: Sequelize.INTEGER });
      */
-    await queryInterface.createTable("addresses", {
+    await queryInterface.createTable("vendors_services", {
       id: {
         type: Sequelize.INTEGER,
         autoIncrement: true,
@@ -18,30 +18,24 @@ module.exports = {
       userId: {
         type: Sequelize.INTEGER,
         allowNull: false,
+      },
+      title: {
+        type: Sequelize.STRING,
+        allowNull: false,
         unique: true,
       },
-      street: {
-        type: Sequelize.STRING,
+      amount: {
+        type: Sequelize.DECIMAL(11, 2),
+        allowNull: false,
+        defaultValue: 0.0,
       },
-      lga: {
-        type: Sequelize.STRING,
+      addressId: {
+        type: Sequelize.INTEGER,
         allowNull: false,
       },
-      state: {
-        type: Sequelize.STRING,
-        allowNull: false,
-      },
-      country: {
-        type: Sequelize.STRING,
-        allowNull: false,
-      },
-      longitude: {
-        type: Sequelize.STRING,
-        allowNull: true,
-      },
-      latitude: {
-        type: Sequelize.STRING,
-        allowNull: true,
+      status: {
+        type: Sequelize.INTEGER,
+        defaultValue: 0,
       },
       createdAt: {
         allowNull: false,
@@ -61,6 +55,5 @@ module.exports = {
      * Example:
      * await queryInterface.dropTable('users');
      */
-    await queryInterface.dropTable("addresses");
   },
 };

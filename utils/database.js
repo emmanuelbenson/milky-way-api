@@ -5,13 +5,13 @@ const config = require("../config/config.json");
 const { Sequelize } = require("sequelize");
 
 const sequelize = new Sequelize(
-  config.local.database,
-  config.local.username,
-  config.local.password,
+  config.development.database,
+  config.development.username,
+  config.development.password,
   {
-    host: config.local.host,
-    port: config.local.port,
-    dialect: config.local.dialect,
+    host: config.development.host,
+    port: config.development.port,
+    dialect: config.development.dialect,
   }
 );
 

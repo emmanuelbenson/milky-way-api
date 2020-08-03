@@ -8,6 +8,9 @@ const adminRoutes = require("./routes/admin");
 const vendorRoutes = require("./routes/vendor");
 const customerRoutes = require("./routes/customer");
 const authRoutes = require("./routes/auth");
+const addressRoutes = require("./routes/address");
+
+const checkSource = require("./middlewares/check-source");
 
 app.use(express.json());
 // app.use(express.urlencoded({ extended: true }));
@@ -22,10 +25,13 @@ app.use((req, res, next) => {
   next();
 });
 
+app.use(checkSource);
+
 app.use("/api/v1/auth", authRoutes);
 app.use("/api/v1/admin", adminRoutes);
 app.use("/api/v1/vendor", vendorRoutes);
 app.use("/api/v1/customer", customerRoutes);
+app.use("/api/v1/address", addressRoutes);
 
 app.use((error, req, res, next) => {
   const status = error.statusCode || 500;

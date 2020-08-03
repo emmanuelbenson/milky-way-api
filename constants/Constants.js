@@ -6,4 +6,7 @@ module.exports = {
   UNEXPIRED: "unexpired",
   ACTIVATE: 1,
   DEACTIVATE: 0,
+  COUNTRY: "nigeria",
+  WEB: "web",
+  MOBILE: "mobile",
 };

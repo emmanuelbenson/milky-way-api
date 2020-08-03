@@ -34,16 +34,9 @@ exports.findByUserId = async (userId) => {
 exports.update = async (userId, fields = {}) => {
   let updateResponse;
   try {
-    updateResponse = await Address.update(
-      {
-        street: fields.street,
-        lga: fields.lga,
-        state: fields.state,
-        longitude: fields.longitude,
-        latitude: fields.latitude,
-      },
-      { where: { userId: userId } }
-    );
+    updateResponse = await Address.update(fields, {
+      where: { userId: userId },
+    });
   } catch (err) {
     throw err;
   }

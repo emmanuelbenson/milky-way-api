@@ -9,6 +9,7 @@ const vendorRoutes = require("./routes/vendor");
 const customerRoutes = require("./routes/customer");
 const authRoutes = require("./routes/auth");
 const addressRoutes = require("./routes/address");
+
 const checkSource = require("./middlewares/check-source");
 
 app.use(express.json());

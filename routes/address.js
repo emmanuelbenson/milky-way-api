@@ -4,9 +4,7 @@ const router = express.Router();
 const { validationResult, body } = require("express-validator");
 
 const addressController = require("../controllers/address");
-const authController = require("../controllers/auth");
 const isAuth = require("../middlewares/is-auth");
-const checkSource = require("../middlewares/check-source");
 
 router.post(
   "/",

@@ -70,23 +70,41 @@ exports.registerService = (req, res, next) => {
 exports.updateService = async (req, res, next) => {
   const updateFields = {};
   const userId = req.userId;
+  const serviceId = req.body.serviceId;
+  if (!req.body.serviceId) {
+    const error = new Error("Vendor service validation");
+    error.statusCode = 404;
+    error.data = [
+      {
+        msg: "service ID is required",
+        param: "serviceId",
+        location: "body",
+      },
+    ];
 
-  const foundService = await serviceMgr.findByUserId(userId);
+    next(error);
+  }
+
+  const foundService = await serviceMgr.findByIDAndUserID(serviceId, userId);
 
   if (foundService) {
+    updateFields.status = req.body.status
+      ? req.body.status
+      : foundService.status;
     updateFields.title = req.body.title ? req.body.title : foundService.title;
     updateFields.amount = parseFloat(req.body.amount)
       ? req.body.amount
       : foundService.amount;
 
     foundService.title = updateFields.title;
+    foundService.status = updateFields.status;
     foundService.amount = updateFields.amount;
   } else {
     const error = new Error("Vendor service validation");
     error.statusCode = 404;
     error.data = [
       {
-        msg: "Vendor does not seem to have a registered service",
+        msg: "Service not found",
         param: "",
         location: "",
       },

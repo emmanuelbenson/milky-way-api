@@ -17,11 +17,11 @@ exports.register = async (userId, serviceObj = {}) => {
   return createResponse.dataValues.id;
 };
 
-exports.findByUserId = async (userId) => {
+exports.findByIDAndUserID = async (serviceId, userId) => {
   let foundVendorService;
   try {
     foundVendorService = await VendorService.findOne({
-      where: { userId: userId },
+      where: { id: serviceId, userId: userId },
     });
   } catch (err) {
     throw err;

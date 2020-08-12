@@ -8,42 +8,28 @@ module.exports = {
      * Example:
      * await queryInterface.createTable('users', { id: Sequelize.INTEGER });
      */
-    await queryInterface.createTable("vendors_services", {
+    await queryInterface.createTable("order_details", {
       id: {
         type: Sequelize.INTEGER,
         autoIncrement: true,
         allowNull: false,
         primaryKey: true,
       },
-      userId: {
+      orderId: {
         type: Sequelize.INTEGER,
         allowNull: false,
       },
-      title: {
-        type: Sequelize.STRING,
+      productId: {
+        type: Sequelize.INTEGER,
         allowNull: false,
-        unique: true,
       },
-      amount: {
+      amountPerKg: {
         type: Sequelize.DECIMAL(11, 2),
         allowNull: false,
-        defaultValue: 0.0,
       },
-      addressId: {
+      quantityInKg: {
         type: Sequelize.INTEGER,
         allowNull: false,
-      },
-      status: {
-        type: Sequelize.INTEGER,
-        defaultValue: 0,
-      },
-      createdAt: {
-        allowNull: false,
-        type: Sequelize.DATE,
-      },
-      updatedAt: {
-        allowNull: false,
-        type: Sequelize.DATE,
       },
     });
   },
@@ -55,5 +41,6 @@ module.exports = {
      * Example:
      * await queryInterface.dropTable('users');
      */
+    await queryInterface.dropTable("order_details");
   },
 };

@@ -10,8 +10,9 @@ const Status = require("../constants/status");
 const User = require("../models/user");
 const Profile = require("../models/profile");
 const PasswordReset = require("../models/passwordreset");
+const sendError = require("../utils/errors");
 
-exports.signup = (req, res, next) => {
+const validate = (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     const error = new Error("Validation fields");
@@ -19,76 +20,45 @@ exports.signup = (req, res, next) => {
     error.data = errors.array();
     throw error;
   }
+};
+
+const createAccount = async (req, res, next) => {
   const email = req.body.email;
   const password = req.body.password;
+  const phoneNumber = req.body.phoneNumber;
   const userType = req.body.userType;
   const firstName = req.body.firstName;
   const lastName = req.body.lastName;
-  bcrypt
-    .hash(password, 12)
-    .then((hashedPassword) => {
-      User.create({
-        email: email,
-        uuid: uuid(),
-        password: hashedPassword,
-        userType: userType,
-      })
-        .then((user) => {
-          Profile.create({
-            firstName: firstName,
-            lastName: lastName,
-            userId: user.dataValues.id,
-          })
-            .then((profile) => {
-              const data = {};
-              data.statusCode = 201;
-              data.message = "Account created successfully";
-              data.data = {
-                id: user.dataValues.id,
-                uuid: user.dataValues.uuid,
-              };
-              res.status(201).json(data);
-            })
-            .catch((err) => {
-              const error = new Error(err.errors[0].message);
-              error.statusCode = 500;
-              error.data = err.errors[0];
-              delete error.data.origin;
-              delete error.data.instance;
-              delete error.data.validatorKey;
-              delete error.data.validatorName;
-              delete error.data.validatorArgs;
-              next(error);
-            });
-        })
-        .catch((err) => {
-          const error = new Error(err.errors[0].message);
-          error.statusCode = 500;
-          error.data = err.errors[0];
-          delete error.data.origin;
-          delete error.data.instance;
-          delete error.data.validatorKey;
-          delete error.data.validatorName;
-          delete error.data.validatorArgs;
-          next(error);
-        });
-    })
-    .catch((err) => {
-      const error = err;
-      error.statusCode = 500;
-      next(error);
-    });
+
+  const hashedPassword = await bcrypt.hash(password, 12);
+  console.warn("PHONE: ", phoneNumber);
+
+  const createUserResponse = await User.create({
+    email: email,
+    uuid: uuid(),
+    password: hashedPassword,
+    phoneNumber: phoneNumber,
+    userType: userType,
+  });
+
+  const profile = await Profile.create({
+    firstName: firstName,
+    lastName: lastName,
+    userId: createUserResponse.dataValues.id,
+  });
+
+  const data = {};
+  data.statusCode = 201;
+  data.message = "Account created successfully";
+  data.data = {
+    id: createUserResponse.dataValues.id,
+    uuid: createUserResponse.dataValues.uuid,
+  };
+
+  res.status(201).json(data);
 };
 
-exports.signin = (req, res, next) => {
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    const error = new Error("Validation fields");
-    error.statusCode = 422;
-    error.data = errors.array();
-    throw error;
-  }
-
+const loginAccount = (req, res, next) => {
   const { email, password } = req.body;
   User.findOne({ where: { email: email } })
     .then((account) => {
@@ -156,15 +126,7 @@ exports.signin = (req, res, next) => {
     });
 };
 
-exports.resetPassword = (req, res, next) => {
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    const error = new Error("Validation fields");
-    error.statusCode = 422;
-    error.data = errors.array();
-    throw error;
-  }
-
+const resetAccountPassword = (req, res, next) => {
   const { email } = req.body;
   crypto.randomBytes(32, (err, buffer) => {
     if (err !== null) {
@@ -203,15 +165,7 @@ exports.resetPassword = (req, res, next) => {
   });
 };
 
-exports.passwordReset = (req, res, next) => {
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    const error = new Error("Validation fields");
-    error.statusCode = 422;
-    error.data = errors.array();
-    throw error;
-  }
-
+const accountPasswordReset = (req, res, next) => {
   const { token, oldPassword, newPassword } = req.body;
   const fieldsErrors = [];
   if (oldPassword === undefined || oldPassword === "") {
@@ -317,4 +271,26 @@ exports.passwordReset = (req, res, next) => {
       error.data = err;
       next(error);
     });
+};
+
+exports.signup = (req, res, next) => {
+  validate(req, res, next);
+  createAccount(req, res, next);
+};
+
+exports.signin = (req, res, next) => {
+  validate(req, res, next);
+  loginAccount(req, res, next);
+};
+
+exports.resetPassword = (req, res, next) => {
+  validate(req, res, next);
+
+  resetAccountPassword(req, res, next);
+};
+
+exports.passwordReset = (req, res, next) => {
+  validate(req, res, next);
+
+  accountPasswordReset(req, res, next);
 };

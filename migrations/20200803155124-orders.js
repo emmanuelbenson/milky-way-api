@@ -8,38 +8,36 @@ module.exports = {
      * Example:
      * await queryInterface.createTable('users', { id: Sequelize.INTEGER });
      */
-    await queryInterface.createTable("users", {
+    await queryInterface.createTable("orders", {
       id: {
         type: Sequelize.INTEGER,
         autoIncrement: true,
         allowNull: false,
         primaryKey: true,
       },
-      uuid: {
-        type: Sequelize.UUID,
-      },
-      email: {
-        type: Sequelize.STRING,
-        allowNull: false,
-        unique: true,
-      },
-      password: {
-        type: Sequelize.STRING,
-        allowNull: false,
-      },
-      phoneNumber: {
-        type: Sequelize.STRING,
-        allowNull: false,
-      },
-      userType: {
-        type: Sequelize.STRING,
-        allowNull: false,
-      },
-      activationCode: {
-        type: Sequelize.STRING,
-      },
-      activated: {
+      vendorId: {
         type: Sequelize.INTEGER,
+        allowNull: false,
+      },
+      customerId: {
+        type: Sequelize.INTEGER,
+        allowNull: false,
+      },
+      isPaid: {
+        type: Sequelize.INTEGER,
+        defaultValue: 0,
+      },
+      orderNumber: {
+        type: Sequelize.STRING,
+        allowNull: false,
+      },
+      shipAddress: {
+        type: Sequelize.TEXT,
+        allowNull: false,
+      },
+      status: {
+        type: Sequelize.ENUM,
+        values: ["pending", "processing", "completed", "declined"],
       },
       createdAt: {
         allowNull: false,
@@ -59,6 +57,6 @@ module.exports = {
      * Example:
      * await queryInterface.dropTable('users');
      */
-    await queryInterface.dropTable("users");
+    await queryInterface.dropTable("orders");
   },
 };

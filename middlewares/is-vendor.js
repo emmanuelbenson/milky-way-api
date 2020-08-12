@@ -3,12 +3,10 @@ const Constants = require("../constants/Constants");
 const jwt = require("jsonwebtoken");
 
 module.exports = (req, res, next) => {
-  const accountType = req.get("userType");
+  const accountType = parseInt(req.userType);
 
   if (accountType !== Constants.VENDOR_TYPE) {
-    const error = new Error(
-      "You do not the permission to access this resource!"
-    );
+    const error = new Error("Access denied!");
     error.statusCode = 401;
     throw error;
   }

@@ -11,4 +11,8 @@ module.exports = {
   ACTIVATE: "activate",
   DEACTIVATED: "deactivated",
   DEACTIVATE: "deactivate",
+  PENDING: "pending",
+  PROCESSING: "processing",
+  COMPLETED: "completed",
+  DECLINED: "declined",
 };

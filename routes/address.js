@@ -44,6 +44,20 @@ router.post(
   addressController.add
 );
 
-router.post("/update", isAuth, addressController.update);
+router.post(
+  "/update",
+  isAuth,
+  [
+    body("userId")
+      .not()
+      .isEmpty()
+      .withMessage("user ID required")
+      .trim()
+      .escape(),
+  ],
+  addressController.update
+);
+
+router.get("/search", isAuth, addressController.find);
 
 module.exports = router;

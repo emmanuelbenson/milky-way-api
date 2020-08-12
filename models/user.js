@@ -2,6 +2,10 @@ const { Sequelize } = require("sequelize");
 
 const sequelize = require("../utils/database");
 
+const Profile = require("./profile");
+const Address = require("./address");
+const Product = require("./product");
+
 const User = sequelize.define("user", {
   id: {
     type: Sequelize.INTEGER,
@@ -21,6 +25,10 @@ const User = sequelize.define("user", {
     type: Sequelize.STRING,
     allowNull: false,
   },
+  phoneNumber: {
+    type: Sequelize.STRING,
+    allowNull: false,
+  },
   userType: {
     type: Sequelize.INTEGER,
     allowNull: false,
@@ -33,5 +41,13 @@ const User = sequelize.define("user", {
     defaultValue: 0,
   },
 });
+
+User.hasOne(Profile);
+User.hasOne(Address);
+User.hasOne(Product);
+
+Profile.belongsTo(User);
+Address.belongsTo(User);
+Product.belongsTo(User);
 
 module.exports = User;

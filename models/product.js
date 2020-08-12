@@ -2,7 +2,9 @@ const Sequelize = require("sequelize");
 
 const sequelize = require("../utils/database");
 
-const Address = sequelize.define("address", {
+const Vendor = require("./user");
+
+const Product = sequelize.define("product", {
   id: {
     type: Sequelize.INTEGER,
     autoIncrement: true,
@@ -12,30 +14,14 @@ const Address = sequelize.define("address", {
   userId: {
     type: Sequelize.INTEGER,
     allowNull: false,
-    unique: true,
   },
-  street: {
-    type: Sequelize.STRING,
-  },
-  lga: {
+  name: {
     type: Sequelize.STRING,
     allowNull: false,
   },
-  state: {
-    type: Sequelize.STRING,
-    allowNull: false,
-  },
-  country: {
-    type: Sequelize.STRING,
-    allowNull: false,
-  },
-  longitude: {
-    type: Sequelize.INTEGER,
-    allowNull: true,
-  },
-  latitude: {
-    type: Sequelize.INTEGER,
-    allowNull: true,
+  unitPrice: {
+    type: Sequelize.DECIMAL(11, 2),
+    defaultValue: 0.0,
   },
   createdAt: {
     allowNull: false,
@@ -45,6 +31,10 @@ const Address = sequelize.define("address", {
     allowNull: false,
     type: Sequelize.DATE,
   },
+  active: {
+    type: Sequelize.BOOLEAN,
+    defaultValue: 0,
+  },
 });
 
-module.exports = Address;
+module.exports = Product;

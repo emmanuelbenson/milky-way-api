@@ -8,40 +8,40 @@ module.exports = {
      * Example:
      * await queryInterface.createTable('users', { id: Sequelize.INTEGER });
      */
-    await queryInterface.createTable("orders", {
+    await queryInterface.createTable("audit_trail_logs", {
       id: {
         type: Sequelize.INTEGER,
         autoIncrement: true,
         allowNull: false,
         primaryKey: true,
       },
-      gasStationId: {
-        type: Sequelize.INTEGER,
-        allowNull: false,
-      },
       userId: {
         type: Sequelize.INTEGER,
         allowNull: false,
       },
-      orderNumber: {
+      endPoint: {
+        type: Sequelize.INTEGER,
+        allowNull: false,
+      },
+      endPointSource: {
         type: Sequelize.STRING,
         allowNull: false,
       },
-      shipAddress: {
-        type: Sequelize.TEXT,
+      ipAddress: {
+        type: Sequelize.STRING,
         allowNull: false,
       },
-      status: {
-        type: Sequelize.ENUM,
-        values: [
-          "pending",
-          "processing",
-          "shipped",
-          "completed",
-          "declined",
-          "customer-satisfied",
-          "vendor-satisfied",
-        ],
+      userAgent: {
+        type: Sequelize.STRING,
+        allowNull: false,
+      },
+      requestBody: {
+        type: Sequelize.STRING,
+        allowNull: false,
+      },
+      responseBody: {
+        type: Sequelize.STRING,
+        allowNull: false,
       },
       createdAt: {
         allowNull: false,
@@ -61,6 +61,6 @@ module.exports = {
      * Example:
      * await queryInterface.dropTable('users');
      */
-    await queryInterface.dropTable("orders");
+    await queryInterface.dropTable("audit_trail_logs");
   },
 };

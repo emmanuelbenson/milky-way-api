@@ -2,32 +2,24 @@ const Sequelize = require("sequelize");
 
 const sequelize = require("../utils/database");
 
-const VendorService = sequelize.define("vendors_services", {
+const Vendor = require("./user");
+
+const Product = sequelize.define("product", {
   id: {
     type: Sequelize.INTEGER,
     autoIncrement: true,
     allowNull: false,
     primaryKey: true,
   },
-  userId: {
-    type: Sequelize.INTEGER,
-    allowNull: false,
-  },
-  title: {
+  requestId: {
     type: Sequelize.STRING,
     allowNull: false,
-    unique: true,
   },
-  amount: {
-    type: Sequelize.DECIMAL(11, 2),
-    allowNull: false,
-    defaultValue: 0.0,
-  },
-  addressId: {
-    type: Sequelize.INTEGER,
+  otp: {
+    type: Sequelize.STRING,
     allowNull: false,
   },
-  status: {
+  used: {
     type: Sequelize.INTEGER,
     defaultValue: 0,
   },
@@ -41,4 +33,4 @@ const VendorService = sequelize.define("vendors_services", {
   },
 });
 
-module.exports = VendorService;
+module.exports = Product;

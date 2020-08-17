@@ -12,11 +12,15 @@ exports.getDetails = async (id) => {
 
   if (foundCustomer) {
     delete foundCustomer.dataValues.password;
-    let profile;
-    let customer;
+    let customer, profile, address;
 
-    profile = await foundCustomer.getProfile();
-    address = await foundCustomer.getAddress();
+    try {
+      profile = await foundCustomer.getProfile();
+      address = await foundCustomer.getAddress();
+    } catch (err) {
+      console.log(err);
+      throw err;
+    }
 
     customer = foundCustomer.dataValues;
     const profileData = profile ? profile.dataValues : null;
@@ -29,4 +33,13 @@ exports.getDetails = async (id) => {
   } else {
     return null;
   }
+};
+
+exports.customerExist = async (id) => {
+  const customer = await this.getDetails(id);
+
+  if (customer) {
+    return true;
+  }
+  return false;
 };

@@ -12,25 +12,28 @@ router.post(
   isAuth,
   isCustomer,
   [
-    body("productId")
-      .not()
-      .isEmpty()
-      .withMessage("Product ID is required")
-      .isInt(),
-    body("quantity")
-      .not()
-      .isEmpty()
-      .withMessage("Quantity is required")
-      .isInt(),
+    body("stationId").not().isEmpty().withMessage("Gas Station ID is required"),
+    body("quantity").not().isEmpty().withMessage("Quantity is required"),
   ],
   orderController.placeOrder
 );
 
-// router.get(
-//   "/view/:orderNumber",
-//   isAuth,
-//   isCustomer,
-//   orderController.viewOrder
-// );
+router.get("/list", isAuth, orderController.listOrders);
+
+router.get("/view/:orderNumber", isAuth, orderController.viewOrder);
+
+router.post(
+  "/update",
+  isAuth,
+  [
+    body("action")
+      .not()
+      .isEmpty()
+      .withMessage("action required")
+      .trim()
+      .escape(),
+  ],
+  orderController.updateOrderState
+);
 
 module.exports = router;

@@ -15,4 +15,6 @@ module.exports = {
   PROCESSING: "processing",
   COMPLETED: "completed",
   DECLINED: "declined",
+  VENDOR_SATISFIED: "vendor-satisfied",
+  CUSTOMER_SATISFIED: "customer-satisfied",
 };

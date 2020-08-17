@@ -33,6 +33,7 @@ const authRoutes = require("./routes/auth");
 const addressRoutes = require("./routes/address");
 const orderRoutes = require("./routes/order");
 const productRoutes = require("./routes/product");
+const gasStationRoutes = require("./routes/gasStation");
 
 const checkSource = require("./middlewares/check-source");
 
@@ -56,6 +57,7 @@ app.use("/api/v1/admin", adminRoutes);
 app.use("/api/v1/address", addressRoutes);
 app.use("/api/v1/order", orderRoutes);
 app.use("/api/v1/product", productRoutes);
+app.use("/api/v1/station", gasStationRoutes);
 
 app.use((error, req, res, next) => {
   console.log(error);

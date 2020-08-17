@@ -17,16 +17,16 @@ exports.create = async (productObj = {}) => {
 };
 
 exports.find = async (productId) => {
-  let foundVendorProduct;
+  let foundProduct;
   try {
-    foundVendorProduct = await Product.findOne({
+    foundProduct = await Product.findOne({
       where: { id: productId },
     });
   } catch (err) {
     throw err;
   }
 
-  return foundVendorProduct ? foundVendorProduct.dataValues : null;
+  return foundProduct ? foundProduct.dataValues : null;
 };
 
 exports.findByVendorID = async (vendorId) => {

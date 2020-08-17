@@ -19,11 +19,11 @@ module.exports = {
         type: Sequelize.INTEGER,
         allowNull: false,
       },
-      productId: {
-        type: Sequelize.INTEGER,
+      amountPerKg: {
+        type: Sequelize.DECIMAL(11, 2),
         allowNull: false,
       },
-      amountPerKg: {
+      totalAmount: {
         type: Sequelize.DECIMAL(11, 2),
         allowNull: false,
       },

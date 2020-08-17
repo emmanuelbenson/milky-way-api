@@ -31,7 +31,6 @@ const createAccount = async (req, res, next) => {
   const lastName = req.body.lastName;
 
   const hashedPassword = await bcrypt.hash(password, 12);
-  console.warn("PHONE: ", phoneNumber);
 
   const createUserResponse = await User.create({
     email: email,

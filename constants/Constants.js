@@ -9,4 +9,7 @@ module.exports = {
   COUNTRY: "nigeria",
   WEB: "web",
   MOBILE: "mobile",
+  MAP_STATION_TYPE: "Feature",
+  GEOMETRY_TYPE: "Point",
+  MEASURE_UNIT: "Kg",
 };

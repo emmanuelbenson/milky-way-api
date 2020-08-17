@@ -3,8 +3,8 @@ const { Sequelize } = require("sequelize");
 const sequelize = require("../utils/database");
 
 const Profile = require("./profile");
+const GasStation = require("./gas_station");
 const Address = require("./address");
-const Product = require("./product");
 
 const User = sequelize.define("user", {
   id: {
@@ -43,11 +43,11 @@ const User = sequelize.define("user", {
 });
 
 User.hasOne(Profile);
+User.hasOne(GasStation);
 User.hasOne(Address);
-User.hasOne(Product);
 
 Profile.belongsTo(User);
+GasStation.belongsTo(User);
 Address.belongsTo(User);
-Product.belongsTo(User);
 
 module.exports = User;

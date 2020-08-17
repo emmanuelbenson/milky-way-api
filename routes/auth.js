@@ -132,6 +132,34 @@ router.post(
   authController.signin
 );
 
+/**
+ * @swagger
+ * /api/v1/auth/reset-password:
+ *   post:
+ *     tags:
+ *       - Users
+ *     name: reset-password
+ *     summary: User request password reset
+ *     consumes:
+ *       - application/json
+ *     parameters:
+ *       - name: body
+ *         in: body
+ *         schema:
+ *           $ref: '#/definitions/User'
+ *           type: object
+ *           properties:
+ *             email:
+ *               type: string
+ *         required:
+ *           - email
+ *       - name: source
+ *         in: header
+ *         schema:
+ *          type: string
+ *          enum: ['web','mobile']
+ *
+ */
 router.post(
   "/reset-password",
   [
@@ -152,6 +180,43 @@ router.post(
   authController.resetPassword
 );
 
+/**
+ * @swagger
+ * /api/v1/auth/password-reset:
+ *   post:
+ *     tags:
+ *       - Users
+ *     name: password-reset
+ *     summary: User reset password
+ *     consumes:
+ *       - application/json
+ *     parameters:
+ *       - name: body
+ *         in: body
+ *         schema:
+ *           $ref: '#/definitions/User'
+ *           type: object
+ *           properties:
+ *             token:
+ *               type: string
+ *             oldPassword:
+ *               type: string
+ *               format: password
+ *             newPassword:
+ *               type: string
+ *               format: password
+ *         required:
+ *           - token
+ *           - email
+ *           - oldPassword
+ *           - newPassword
+ *       - name: source
+ *         in: header
+ *         schema:
+ *          type: string
+ *          enum: ['web','mobile']
+ *
+ */
 router.post(
   "/password-reset",
   [

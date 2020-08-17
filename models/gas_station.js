@@ -1,34 +1,42 @@
 const Sequelize = require("sequelize");
 
 const sequelize = require("../utils/database");
-const OrderDetails = require("./orderDetails");
 
-const Order = sequelize.define("order", {
+const GasStation = sequelize.define("gas_stations", {
   id: {
     type: Sequelize.INTEGER,
     autoIncrement: true,
     allowNull: false,
     primaryKey: true,
   },
-  gasStationId: {
-    type: Sequelize.INTEGER,
-    allowNull: false,
-  },
   userId: {
     type: Sequelize.INTEGER,
     allowNull: false,
   },
-  orderNumber: {
+  name: {
+    type: Sequelize.STRING,
+    allowNull: false,
+    unique: true,
+  },
+  amount: {
+    type: Sequelize.DECIMAL(11, 2),
+    defaultValue: 0.0,
+  },
+  measureUnit: {
+    type: Sequelize.STRING,
+    defaultValue: "Kg",
+  },
+  geometry: {
     type: Sequelize.STRING,
     allowNull: false,
   },
-  shipAddress: {
-    type: Sequelize.TEXT,
-    allowNull: false,
+  type: {
+    type: Sequelize.STRING,
+    defaultValue: "Feature",
   },
-  status: {
+  properties: {
     type: Sequelize.TEXT,
-    defaultValue: "pending",
+    defaultValue: "Feature",
   },
   createdAt: {
     allowNull: false,
@@ -40,7 +48,4 @@ const Order = sequelize.define("order", {
   },
 });
 
-Order.hasOne(OrderDetails);
-OrderDetails.belongsTo(Order);
-
-module.exports = Order;
+module.exports = GasStation;

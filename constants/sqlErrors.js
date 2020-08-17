@@ -1,0 +1,5 @@
+module.exports = {
+  UNIQUE_VIOLATION_ERROR: "unique violation",
+  UNIQUE_VIOLATION_ERROR_CODE: "ER_DUP_ENTRY",
+  UNIQUE_VIOLATION_ERROR_NO: 1062,
+};

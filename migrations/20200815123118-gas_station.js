@@ -8,40 +8,41 @@ module.exports = {
      * Example:
      * await queryInterface.createTable('users', { id: Sequelize.INTEGER });
      */
-    await queryInterface.createTable("orders", {
+    await queryInterface.createTable("gas_stations", {
       id: {
         type: Sequelize.INTEGER,
         autoIncrement: true,
         allowNull: false,
         primaryKey: true,
       },
-      gasStationId: {
-        type: Sequelize.INTEGER,
-        allowNull: false,
-      },
       userId: {
         type: Sequelize.INTEGER,
         allowNull: false,
       },
-      orderNumber: {
+      name: {
+        type: Sequelize.STRING,
+        allowNull: false,
+        unique: true,
+      },
+      amount: {
+        type: Sequelize.DECIMAL(11, 2),
+        defaultValue: 0.0,
+      },
+      measureUnit: {
+        type: Sequelize.STRING,
+        defaultValue: "Kg",
+      },
+      geometry: {
         type: Sequelize.STRING,
         allowNull: false,
       },
-      shipAddress: {
-        type: Sequelize.TEXT,
-        allowNull: false,
+      type: {
+        type: Sequelize.STRING,
+        defaultValue: "Feature",
       },
-      status: {
-        type: Sequelize.ENUM,
-        values: [
-          "pending",
-          "processing",
-          "shipped",
-          "completed",
-          "declined",
-          "customer-satisfied",
-          "vendor-satisfied",
-        ],
+      properties: {
+        type: Sequelize.TEXT,
+        defaultValue: "Feature",
       },
       createdAt: {
         allowNull: false,
@@ -61,6 +62,6 @@ module.exports = {
      * Example:
      * await queryInterface.dropTable('users');
      */
-    await queryInterface.dropTable("orders");
+    await queryInterface.dropTable("gas_stations");
   },
 };

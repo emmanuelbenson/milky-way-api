@@ -117,7 +117,9 @@ router.post(
  *          enum: ['web','mobile']
  *     responses:
  *       200:
- *         description: User logged in successfully
+ *         description: User created in successfully
+ *       401:
+ *         description: These credentials do not match our records.
  *       400:
  *         description: Request source not specified
  *       422:
@@ -158,7 +160,15 @@ router.post(
  *         schema:
  *          type: string
  *          enum: ['web','mobile']
- *
+ *     responses:
+ *       200:
+ *         description: Password reset link sent to customer@caltek.com
+ *       401:
+ *         description: These credentials do not match our records.
+ *       400:
+ *         description: Request source not specified
+ *       422:
+ *         description: Validation fields, Email is required
  */
 router.post(
   "/reset-password",
@@ -187,7 +197,7 @@ router.post(
  *     tags:
  *       - Users
  *     name: password-reset
- *     summary: User reset password
+ *     summary: User resets password
  *     consumes:
  *       - application/json
  *     parameters:
@@ -197,29 +207,47 @@ router.post(
  *           $ref: '#/definitions/User'
  *           type: object
  *           properties:
+ *             email:
+ *               type: string
  *             token:
  *               type: string
- *             oldPassword:
- *               type: string
- *               format: password
  *             newPassword:
  *               type: string
- *               format: password
  *         required:
- *           - token
  *           - email
- *           - oldPassword
+ *           - token
  *           - newPassword
  *       - name: source
  *         in: header
  *         schema:
  *          type: string
  *          enum: ['web','mobile']
- *
+ *     responses:
+ *       200:
+ *         description: Password was updated successfully
+ *       401:
+ *         description: These credentials do not match our records.
+ *       400:
+ *         description: Request source not specified
+ *       422:
+ *         description: Validation fields, Email is required, Invalid password reset token, New password is required
  */
 router.post(
   "/password-reset",
   [
+    body("email")
+      .isEmail()
+      .not()
+      .isEmpty()
+      .withMessage("Email is required")
+      .trim()
+      .escape(),
+    body("newPassword")
+      .not()
+      .isEmpty()
+      .withMessage("New password is required")
+      .trim()
+      .escape(),
     body("token")
       .not()
       .isEmpty()

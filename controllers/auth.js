@@ -1,5 +1,5 @@
 require("dotenv").config();
-const { validationResult, check, oneOf } = require("express-validator");
+
 const bcrypt = require("bcryptjs");
 const { uuid } = require("uuidv4");
 const jwt = require("jsonwebtoken");
@@ -10,19 +10,14 @@ const Status = require("../constants/status");
 const User = require("../models/user");
 const Profile = require("../models/profile");
 const PasswordReset = require("../models/passwordreset");
-const sendError = require("../utils/errors");
+const OTPManager = require("../services/otpManager");
+const AccountManager = require("../services/accountManager");
+const ValidateInput = require("../utils/validateInputs");
+const Error = require("../utils/errors");
 
-const validate = (req, res, next) => {
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    const error = new Error("Validation fields");
-    error.statusCode = 422;
-    error.data = errors.array();
-    throw error;
-  }
-};
+exports.signup = async (req, res, next) => {
+  ValidateInput.validate(req, res, next);
 
-const createAccount = async (req, res, next) => {
   const email = req.body.email;
   const password = req.body.password;
   const phoneNumber = req.body.phoneNumber;
@@ -57,75 +52,72 @@ const createAccount = async (req, res, next) => {
   res.status(201).json(data);
 };
 
-const loginAccount = (req, res, next) => {
+exports.signin = async (req, res, next) => {
+  ValidateInput.validate(req, res, next);
+
   const { email, password } = req.body;
-  User.findOne({ where: { email: email } })
-    .then((account) => {
-      if (!account) {
-        error = new Error("These credentials do not match our records.");
-        error.statusCode = 401;
-        const errors = {
-          errors: [
-            {
-              value: "",
-              msg: "Invalid email/password",
-              param: "email/password",
-              location: "body",
-            },
-          ],
-        };
-        error.data = errors;
-        throw error;
+
+  const foundUser = await User.findOne({ where: { email: email } });
+
+  if (!foundUser) {
+    const data = [
+      {
+        value: "",
+        msg: "Invalid email/password",
+        param: "email/password",
+        location: "body",
+      },
+    ];
+    Error.send(404, "These credentials do not match our records.", data, next);
+  }
+
+  const user = foundUser.dataValues;
+
+  const hashedPassword = await bcrypt.compare(password, user.password);
+
+  if (!hashedPassword) {
+    Error.send(
+      401,
+      "These credentials do not match our records.",
+      [
+        {
+          value: "",
+          msg: "Invalid email/password",
+          param: "email/password",
+          location: "body",
+        },
+      ],
+      next
+    );
+  }
+
+  let token;
+
+  try {
+    token = jwt.sign(
+      { userId: user.id, uuid: user.uuid, userType: user.userType },
+      process.env.JWT_SECRET,
+      {
+        expiresIn: "2h",
       }
+    );
+  } catch (err) {
+    console.log(err);
+    Error.send(500, "Internal server error", [], next);
+  }
 
-      const user = account.dataValues;
-      bcrypt
-        .compare(password, user.password)
-        .then((isEqual) => {
-          if (!isEqual) {
-            error = new Error("These credentials do not match our records.");
-            error.statusCode = 401;
-            const errors = {
-              errors: [
-                {
-                  value: "",
-                  msg: "Invalid email/password",
-                  param: "email/password",
-                  location: "body",
-                },
-              ],
-            };
-            error.data = errors;
-            throw error;
-          }
-          const token = jwt.sign(
-            { userId: user.id, uuid: user.uuid, userType: user.userType },
-            process.env.JWT_SECRET,
-            {
-              expiresIn: "2h",
-            }
-          );
-
-          const data = {
-            token: token,
-            userId: user.userId,
-            uuid: user.uuid,
-            userType: user.userType,
-          };
-          res.status(200).json({ data: data });
-        })
-        .catch((err) => {
-          next(err);
-        });
-    })
-    .catch((err) => {
-      const error = err;
-      error.statusCode = 404;
-      next(err);
-    });
+  const data = {
+    token: token,
+    userId: user.userId,
+    uuid: user.uuid,
+    userType: user.userType,
+  };
+  res.status(200).json({ data: data });
 };
 
-const resetAccountPassword = (req, res, next) => {
+exports.resetPassword = async (req, res, next) => {
+  ValidateInput.validate(req, res, next);
+
   const { email } = req.body;
   crypto.randomBytes(32, (err, buffer) => {
     if (err !== null) {
@@ -164,132 +156,75 @@ const resetAccountPassword = (req, res, next) => {
   });
 };
 
-const accountPasswordReset = (req, res, next) => {
-  const { token, oldPassword, newPassword } = req.body;
-  const fieldsErrors = [];
-  if (oldPassword === undefined || oldPassword === "") {
-    const error = {
-      value: oldPassword,
-      msg: "old password is required",
-      param: "oldPassword",
-      location: "body",
-    };
-    fieldsErrors.push(error);
-  }
-  if (newPassword === undefined || newPassword === "") {
-    const error = {
-      value: newPassword,
-      msg: "new password is required",
-      param: "newPassword",
-      location: "body",
-    };
-    fieldsErrors.push(error);
-  }
+exports.passwordReset = async (req, res, next) => {
+  ValidateInput.validate(req, res, next);
 
-  if (fieldsErrors.length > 0) {
-    const error = new Error("Validation fields");
-    error.statusCode = 422;
-    error.data = fieldsErrors;
+  const { email, token, newPassword } = req.body;
+
+  let foundToken, error;
+
+  foundToken = await PasswordReset.findOne({
+    where: { token: token },
+  });
+
+  if (!foundToken) {
+    const data = [
+      {
+        value: "",
+        msg: "Token not found",
+        param: "token",
+        location: "body",
+      },
+    ];
+
+    Error.send(500, "Token expired", data, next);
 
     throw error;
   }
 
-  PasswordReset.findOne({
-    where: { token: token },
-  })
-    .then((result) => {
-      const passwordResetRequest = result.dataValues;
+  if (foundToken.dataValues.expiresIn < moment()) {
+    const data = [
+      {
+        value: "",
+        msg: "Token expired",
+        param: "token",
+        location: "body",
+      },
+    ];
 
-      if (passwordResetRequest.expiresIn >= moment()) {
-        bcrypt
-          .hash(newPassword, 12)
-          .then((hashedPassword) => {
-            User.update(
-              { password: hashedPassword },
-              { where: { email: passwordResetRequest.email } }
-            )
-              .then(() => {
-                const data = {
-                  status: "success",
-                  message: "Password reset was successful",
-                };
-                PasswordReset.update(
-                  { status: Status.EXPIRED },
-                  { where: { token: token } }
-                );
-                res.status(201).json(data);
-              })
-              .catch((err) => {
-                console.log(err);
-                const error = new Error(err.errors[0].message);
-                error.statusCode = 500;
-                error.data = err.errors[0];
-                delete error.data.origin;
-                delete error.data.instance;
-                delete error.data.validatorKey;
-                delete error.data.validatorName;
-                delete error.data.validatorArgs;
-                next(error);
-              });
-          })
-          .catch((err) => {
-            console.log(err);
-            const error = new Error(err.errors[0].message);
-            error.statusCode = 500;
-            error.data = err.errors[0];
-            delete error.data.origin;
-            delete error.data.instance;
-            delete error.data.validatorKey;
-            delete error.data.validatorName;
-            delete error.data.validatorArgs;
-            next(error);
-          });
-      } else {
-        PasswordReset.update(
-          { status: Status.EXPIRED },
-          { where: { token: token } }
-        );
-        const err = {
-          value: "",
-          msg: "Token expired",
-          param: "token",
-          location: "body",
-        };
+    Error.send(500, "Token expired", data, next);
+  }
 
-        const error = new Error("Validation field");
-        error.statusCode = 422;
-        error.data = [err];
+  const hashedPassword = await bcrypt.hash(newPassword, 12);
 
-        throw error;
-      }
-    })
-    .catch((err) => {
-      console.log(err);
-      const error = new Error(err);
-      error.statusCode = 500;
-      error.data = err;
-      next(error);
-    });
-};
+  const updateResponse = await AccountManager.update(email, {
+    password: hashedPassword,
+  });
 
-exports.signup = (req, res, next) => {
-  validate(req, res, next);
-  createAccount(req, res, next);
-};
+  if (!updateResponse) {
+    const data = [
+      {
+        value: "",
+        msg: "Token expired",
+        param: "token",
+        location: "body",
+      },
+    ];
 
-exports.signin = (req, res, next) => {
-  validate(req, res, next);
-  loginAccount(req, res, next);
-};
+    Error.send(
+      500,
+      "Cannot update password at the moment. Please try again later",
+      data,
+      next
+    );
+  }
 
-exports.resetPassword = (req, res, next) => {
-  validate(req, res, next);
+  await PasswordReset.update(
+    { status: Status.EXPIRED },
+    { where: { token: token } }
+  );
 
-  resetAccountPassword(req, res, next);
-};
-
-exports.passwordReset = (req, res, next) => {
-  validate(req, res, next);
-
-  accountPasswordReset(req, res, next);
+  res.status(200).json({
+    message: "Password was updated successfully",
+  });
 };

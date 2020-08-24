@@ -18,11 +18,11 @@ PasswordReset.init(
     expiresIn: {
       type: Sequelize.DATE,
       allowNull: false,
-      defaultValue: Status.UNEXPIRED,
     },
     status: {
       type: Sequelize.STRING,
       allowNull: false,
+      defaultValue: Status.UNEXPIRED,
     },
   },
   { sequelize, modelName: "password_reset" }

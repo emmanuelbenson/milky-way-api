@@ -2,29 +2,33 @@ const Sequelize = require("sequelize");
 
 const sequelize = require("../utils/database");
 
-const Vendor = require("./user");
+const User = require("./user");
 
-const OTP = sequelize.define("otps", {
+const Request = sequelize.define("requests", {
   id: {
     type: Sequelize.INTEGER,
     autoIncrement: true,
     allowNull: false,
     primaryKey: true,
   },
+  userId: {
+    type: Sequelize.INTEGER,
+    allowNull: false,
+  },
   requestId: {
     type: Sequelize.STRING,
     allowNull: false,
   },
-  otp: {
+  requestServiceManager: {
     type: Sequelize.STRING,
     allowNull: false,
   },
-  used: {
-    type: Sequelize.INTEGER,
-    defaultValue: 0,
+  requestServiceManagerMethod: {
+    type: Sequelize.STRING,
+    allowNull: false,
   },
-  expiresIn: {
-    type: Sequelize.DATE,
+  serviceManagerMethodArrayParam: {
+    type: Sequelize.STRING,
     allowNull: false,
   },
   createdAt: {
@@ -37,4 +41,4 @@ const OTP = sequelize.define("otps", {
   },
 });
 
-module.exports = OTP;
+module.exports = Request;

@@ -49,3 +49,15 @@ exports.toggleAccountActivation = async (uuid, action) => {
     throw err;
   }
 };
+
+exports.update = async (email, fields = {}) => {
+  try {
+    await User.update(fields, {
+      where: { email: email },
+    });
+  } catch (err) {
+    throw err;
+  }
+
+  return true;
+};

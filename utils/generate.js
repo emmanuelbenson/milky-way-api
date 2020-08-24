@@ -1,21 +1,24 @@
 require("dotenv").config();
 
-exports.randomString = (length = 8) => {
+exports.orderNumber = (length = 8) => {
   const str = Math.random().toString(22).substr(2, length);
-
-  return str;
-};
-
-exports.genOrderNumber = (length = 8) => {
-  const genStr = this.randomString(length);
 
   const timestamp = new Date();
 
   const randStr =
     process.env.ORDER_NUMBER_PREFIX +
-    genStr.toUpperCase() +
+    str.toUpperCase() +
     "|" +
     timestamp.getTime();
-
   return randStr;
+};
+
+exports.randomString = (length = 8) => {
+  const str = Math.random().toString(22).substr(2, length);
+  return str;
+};
+
+exports.otp = (length = 6) => {
+  const str = Math.random().toString(6).substr(2, length);
+  return str;
 };

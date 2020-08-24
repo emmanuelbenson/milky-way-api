@@ -8,27 +8,31 @@ module.exports = {
      * Example:
      * await queryInterface.createTable('users', { id: Sequelize.INTEGER });
      */
-    await queryInterface.createTable("otps", {
+    await queryInterface.createTable("requests", {
       id: {
         type: Sequelize.INTEGER,
         autoIncrement: true,
         allowNull: false,
         primaryKey: true,
       },
+      userId: {
+        type: Sequelize.INTEGER,
+        allowNull: false,
+      },
       requestId: {
         type: Sequelize.STRING,
         allowNull: false,
       },
-      otp: {
+      requestServiceManager: {
         type: Sequelize.STRING,
         allowNull: false,
       },
-      used: {
-        type: Sequelize.INTEGER,
-        defaultValue: 0,
+      requestServiceManagerMethod: {
+        type: Sequelize.STRING,
+        allowNull: false,
       },
-      expiresIn: {
-        type: Sequelize.DATE,
+      serviceManagerMethodArrayParam: {
+        type: Sequelize.STRING,
         allowNull: false,
       },
       createdAt: {
@@ -49,6 +53,6 @@ module.exports = {
      * Example:
      * await queryInterface.dropTable('users');
      */
-    await queryInterface.dropTable("otps");
+    await queryInterface.dropTable("requests");
   },
 };

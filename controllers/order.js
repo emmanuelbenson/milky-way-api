@@ -51,7 +51,7 @@ exports.placeOrder = async (req, res, next) => {
     gasStationId: station.id,
     userId: req.userId,
     shipAddress: req.body.shipAddress ? req.body.shipAddress : customer.address,
-    orderNumber: Generate.genOrderNumber(10),
+    orderNumber: Generate.orderNumber(10),
   };
 
   if (!order.shipAddress) {

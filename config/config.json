@@ -8,12 +8,12 @@
     "port": "25060"
   },
   "development": {
-    "username": "root",
-    "password": "root",
-    "database": "milkyway_development",
-    "host": "127.0.0.1",
+    "username": "doadmin",
+    "password": "sd8blyc8mm6rabfo",
+    "database": "defaultdb",
+    "host": "milky-waydb-do-user-4390099-0.a.db.ondigitalocean.com",
     "dialect": "mysql",
-    "port": "3307"
+    "port": "25060"
   },
   "test": {
     "username": "root",

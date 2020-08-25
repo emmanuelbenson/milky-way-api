@@ -6,6 +6,7 @@ const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
 const moment = require("moment");
 const Status = require("../constants/status");
+const Constants = require("../constants/Constants");
 
 const User = require("../models/user");
 const Profile = require("../models/profile");
@@ -18,12 +19,15 @@ const Error = require("../utils/errors");
 exports.signup = async (req, res, next) => {
   ValidateInput.validate(req, res, next);
 
-  const email = req.body.email;
-  const password = req.body.password;
-  const phoneNumber = req.body.phoneNumber;
-  const userType = req.body.userType;
-  const firstName = req.body.firstName;
-  const lastName = req.body.lastName;
+  const acceptableUserType = [Constants.CUSTOMER_TYPE, Constants.VENDOR_TYPE];
+  const userType = parseInt(req.body.userType);
+
+  if (!acceptableUserType.includes(userType)) {
+    Error.send(400, "Invalid User Type", next);
+    return;
+  }
+
+  const { email, password, phoneNumber, firstName, lastName } = req.body;
 
   const hashedPassword = await bcrypt.hash(password, 12);
 
@@ -60,15 +64,7 @@ exports.signin = async (req, res, next) => {
   const foundUser = await User.findOne({ where: { email: email } });
 
   if (!foundUser) {
-    const data = [
-      {
-        value: "",
-        msg: "Invalid email/password",
-        param: "email/password",
-        location: "body",
-      },
-    ];
-    Error.send(404, "These credentials do not match our records.", data, next);
+    Error.send(404, "These credentials do not match our records.", next);
   }
 
   const user = foundUser.dataValues;
@@ -76,19 +72,7 @@ exports.signin = async (req, res, next) => {
   const hashedPassword = await bcrypt.compare(password, user.password);
 
   if (!hashedPassword) {
-    Error.send(
-      401,
-      "These credentials do not match our records.",
-      [
-        {
-          value: "",
-          msg: "Invalid email/password",
-          param: "email/password",
-          location: "body",
-        },
-      ],
-      next
-    );
+    Error.send(401, "These credentials do not match our records.", next);
   }
 
   let token;
@@ -103,7 +87,7 @@ exports.signin = async (req, res, next) => {
     );
   } catch (err) {
     console.log(err);
-    Error.send(500, "Internal server error", [], next);
+    Error.send(500, "Internal server error", next);
   }
 
   const data = {
@@ -122,11 +106,9 @@ exports.resetPassword = async (req, res, next) => {
   crypto.randomBytes(32, (err, buffer) => {
     if (err !== null) {
       console.log(err);
-      const error = new Error("Internal server error");
-      error.statusCode = 500;
-      error.data = err.array();
-      throw error;
+      Error.send(500, "Internal server error", next);
     }
+
     const token = buffer.toString("hex");
     PasswordReset.create({
       email: email,
@@ -143,15 +125,7 @@ exports.resetPassword = async (req, res, next) => {
       })
       .catch((err) => {
         console.log(err);
-        const error = new Error(err.errors[0].message);
-        error.statusCode = 500;
-        error.data = err.errors[0];
-        delete error.data.origin;
-        delete error.data.instance;
-        delete error.data.validatorKey;
-        delete error.data.validatorName;
-        delete error.data.validatorArgs;
-        next(error);
+        Error.send(500, "Internal server error", next);
       });
   });
 };
@@ -178,8 +152,6 @@ exports.passwordReset = async (req, res, next) => {
     ];
 
     Error.send(500, "Token expired", data, next);
-
-    throw error;
   }
 
   if (foundToken.dataValues.expiresIn < moment()) {
@@ -202,19 +174,9 @@ exports.passwordReset = async (req, res, next) => {
   });
 
   if (!updateResponse) {
-    const data = [
-      {
-        value: "",
-        msg: "Token expired",
-        param: "token",
-        location: "body",
-      },
-    ];
-
     Error.send(
       500,
       "Cannot update password at the moment. Please try again later",
-      data,
       next
     );
   }
@@ -226,5 +188,33 @@ exports.passwordReset = async (req, res, next) => {
 
   res.status(200).json({
     message: "Password was updated successfully",
+  });
+};
+
+exports.toggleAccountState = async (req, res, next) => {
+  ValidateInput.validate(req, res, next);
+
+  const { action, uuid } = req.body;
+
+  const actionArray = [Status.ACTIVATE, Status.DEACTIVATE];
+
+  if (actionArray.includes(action)) {
+    res.send("INCLUDED");
+  }
+
+  res.send("NOT INCLUDED");
+
+  let response;
+
+  try {
+    response = await AccountManager.toggleAccountActivation(uuid, action);
+  } catch (err) {
+    console.log(err);
+    Error.send(500, "Internal server error", next);
+  }
+
+  res.status(200).json({
+    status: "success",
+    message: "Account ",
   });
 };

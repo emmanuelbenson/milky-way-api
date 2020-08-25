@@ -16,6 +16,7 @@ const Address = sequelize.define("address", {
   },
   street: {
     type: Sequelize.STRING,
+    allowNull: false,
   },
   lga: {
     type: Sequelize.STRING,

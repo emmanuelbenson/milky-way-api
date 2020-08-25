@@ -3,17 +3,17 @@ const Constants = require("../constants/Constants");
 const Address = require("../models/address");
 const User = require("../models/user");
 
-exports.save = async (userId, address = []) => {
+exports.save = async (userId, street, lga, state, lat, lng) => {
   let newAddressResponse;
   try {
     newAddressResponse = await Address.create({
       userId: userId,
-      street: address.street,
-      lga: address.lga,
-      state: address.state,
+      street: street,
+      lga: lga,
+      state: state,
       country: Constants.COUNTRY,
-      longitude: address.longitude,
-      latitude: address.latitude,
+      longitude: lng,
+      latitude: lat,
     });
   } catch (err) {
     throw err;
@@ -67,6 +67,5 @@ exports.update = async (userId, fields = {}) => {
   } catch (err) {
     throw err;
   }
-
-  console.log(updateResponse);
+  return true;
 };

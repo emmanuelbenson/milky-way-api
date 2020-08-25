@@ -1,7 +1,5 @@
-exports.send = (statusCode = 500, message, data = [], next) => {
+exports.send = (statusCode = 500, message, next) => {
   const error = new Error(message);
   error.statusCode = statusCode;
-  error.data = data;
   next(error);
-  return;
 };

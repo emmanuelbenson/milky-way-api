@@ -1,14 +1,16 @@
 const express = require("express");
 const router = express.Router();
 
-const { validationResult, body } = require("express-validator");
+const { body } = require("express-validator");
 
 const addressController = require("../controllers/address");
 const isAuth = require("../middlewares/is-auth");
+const isCustomer = require("../middlewares/is-customer");
 
 router.post(
   "/",
   isAuth,
+  isCustomer,
   [
     body("street")
       .not()
@@ -47,6 +49,7 @@ router.post(
 router.post(
   "/update",
   isAuth,
+  isCustomer,
   [
     body("userId")
       .not()
@@ -58,6 +61,6 @@ router.post(
   addressController.update
 );
 
-router.get("/search", isAuth, addressController.find);
+router.get("/search", isAuth, isCustomer, addressController.find);
 
 module.exports = router;

@@ -1,11 +1,10 @@
 const express = require("express");
 const router = express.Router();
 
-const swaggerJsDoc = require("swagger-jsdoc");
-const swaggerUI = require("swagger-ui-express");
-
 const User = require("../models/user");
 const authController = require("../controllers/auth");
+const IsAuth = require("../middlewares/is-auth");
+const IsAdmin = require("../middlewares/is-admin");
 
 const Status = require("../constants/status");
 const ResponseError = require("../constants/responseErrors");
@@ -13,57 +12,6 @@ const ResponseError = require("../constants/responseErrors");
 const { body, validatorResult, check, oneOf } = require("express-validator");
 const PasswordReset = require("../models/passwordreset");
 
-/**
- * @swagger
- * /api/v1/auth/signup:
- *   post:
- *     tags:
- *       - Users
- *     name: signup
- *     summary: Signs up a user
- *     consumes:
- *       - application/json
- *     parameters:
- *       - name: body
- *         in: body
- *         schema:
- *           $ref: '#/definitions/User'
- *           type: object
- *           properties:
- *             email:
- *               type: string
- *             password:
- *               type: string
- *               format: password
- *             userType:
- *              type: integer
- *              enum: [2000,3000] # 2000 for vendors and 3000 for customer
- *             firstName:
- *              type: string
- *             lastName:
- *              type: string
- *             phoneNumber:
- *              type: string
- *         required:
- *           - email
- *           - password
- *           - userType
- *           - firstName
- *           - lastName
- *           - phoneNumber
- *       - name: source
- *         in: header
- *         schema:
- *          type: string
- *          enum: ['web','mobile']
- *     responses:
- *       200:
- *         description: User created in successfully
- *       400:
- *         description: Request source not specified
- *       422:
- *         description: Validation fields
- */
 router.post(
   "/signup",
   [
@@ -85,46 +33,6 @@ router.post(
   authController.signup
 );
 
-/**
- * @swagger
- * /api/v1/auth/signin:
- *   post:
- *     tags:
- *       - Users
- *     name: signin
- *     summary: Signs in a user
- *     consumes:
- *       - application/json
- *     parameters:
- *       - name: body
- *         in: body
- *         schema:
- *           $ref: '#/definitions/User'
- *           type: object
- *           properties:
- *             email:
- *               type: string
- *             password:
- *               type: string
- *               format: password
- *         required:
- *           - email
- *           - password
- *       - name: source
- *         in: header
- *         schema:
- *          type: string
- *          enum: ['web','mobile']
- *     responses:
- *       200:
- *         description: User created in successfully
- *       401:
- *         description: These credentials do not match our records.
- *       400:
- *         description: Request source not specified
- *       422:
- *         description: Validation fields
- */
 router.post(
   "/signin",
   [
@@ -134,42 +42,6 @@ router.post(
   authController.signin
 );
 
-/**
- * @swagger
- * /api/v1/auth/reset-password:
- *   post:
- *     tags:
- *       - Users
- *     name: reset-password
- *     summary: User request password reset
- *     consumes:
- *       - application/json
- *     parameters:
- *       - name: body
- *         in: body
- *         schema:
- *           $ref: '#/definitions/User'
- *           type: object
- *           properties:
- *             email:
- *               type: string
- *         required:
- *           - email
- *       - name: source
- *         in: header
- *         schema:
- *          type: string
- *          enum: ['web','mobile']
- *     responses:
- *       200:
- *         description: Password reset link sent to customer@caltek.com
- *       401:
- *         description: These credentials do not match our records.
- *       400:
- *         description: Request source not specified
- *       422:
- *         description: Validation fields, Email is required
- */
 router.post(
   "/reset-password",
   [
@@ -190,48 +62,6 @@ router.post(
   authController.resetPassword
 );
 
-/**
- * @swagger
- * /api/v1/auth/password-reset:
- *   post:
- *     tags:
- *       - Users
- *     name: password-reset
- *     summary: User resets password
- *     consumes:
- *       - application/json
- *     parameters:
- *       - name: body
- *         in: body
- *         schema:
- *           $ref: '#/definitions/User'
- *           type: object
- *           properties:
- *             email:
- *               type: string
- *             token:
- *               type: string
- *             newPassword:
- *               type: string
- *         required:
- *           - email
- *           - token
- *           - newPassword
- *       - name: source
- *         in: header
- *         schema:
- *          type: string
- *          enum: ['web','mobile']
- *     responses:
- *       200:
- *         description: Password was updated successfully
- *       401:
- *         description: These credentials do not match our records.
- *       400:
- *         description: Request source not specified
- *       422:
- *         description: Validation fields, Email is required, Invalid password reset token, New password is required
- */
 router.post(
   "/password-reset",
   [
@@ -267,6 +97,27 @@ router.post(
       }),
   ],
   authController.passwordReset
+);
+
+router.post(
+  "/account/change-state",
+  IsAdmin,
+  IsAuth,
+  [
+    body("uuid")
+      .not()
+      .isEmpty()
+      .withMessage("UUID is required")
+      .trim()
+      .escape(),
+    body("action")
+      .not()
+      .isEmpty()
+      .withMessage("Action is required")
+      .trim()
+      .escape(),
+  ],
+  authController.toggleAccountState
 );
 
 module.exports = router;

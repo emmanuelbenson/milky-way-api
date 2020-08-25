@@ -2,7 +2,7 @@ require("dotenv").config();
 const ValidateInput = require("../utils/validateInputs");
 const Status = require("../constants/status");
 const Constants = require("../constants/Constants");
-const SendError = require("../utils/errors");
+const Error = require("../utils/errors");
 const responseSuccess = require("../constants/responseSuccess");
 
 const addressMgr = require("../services/addressManager");
@@ -24,7 +24,7 @@ exports.add = async (req, res, next) => {
   }
 
   if (foundAddress) {
-    SendError.send(403, "You already have an address", foundAddress, next);
+    Error.send(403, "You already have an address", next);
   }
 
   let saveResponse;

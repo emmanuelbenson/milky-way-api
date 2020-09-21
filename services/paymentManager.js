@@ -97,15 +97,24 @@ exports.hook = async (transactionReference, transactionId) => {
 };
 
 exports.verify = async (userId, transactionRef, transactionId) => {
-  let payment;
+  let payment, error;
 
   try {
     payment = await this.get(userId, transactionRef);
-  } catch (error) {
+  } catch (err) {
+    throw err;
+  }
+
+  if (!payment) {
+    const msg = "Payment not found";
+    error = new Error(msg);
+    error.statusCode = 404;
+    error.message = msg;
+    error.data = [];
     throw error;
   }
 
-  if (payment) {
+  if (payment.dataValues.status === Status.PENDING) {
     let verifyResponse;
     let url =
       process.env.FLUTTERWAVE_BASE_URL +
@@ -126,51 +135,56 @@ exports.verify = async (userId, transactionRef, transactionId) => {
       throw error;
     }
 
-    if (verifyResponse.status === Status.OK) {
-      let order;
-
-      try {
-        order = await payment.getOrder();
-      } catch (error) {
-        console.log(error);
-        throw error;
-      }
-
-      const data = verifyResponse.data;
-
-      if (
-        data.charged_amount === order.amount &&
-        data.tx_ref === transactionRef &&
-        data.status === Status.SUCCESSFUL
-      ) {
-        try {
-          await payment.update({
-            where: { option: data.payment_type, status: data.status },
-          });
-        } catch (error) {
-          console.log(error);
-          throw error;
-        }
-      } else {
-        const error = new Error("Invalid payment");
-        error.message = "Invalid payment";
-        error.statusCode = 404;
-        error.data = [];
-        throw error;
-      }
-    } else {
-      try {
-        await payment.update({ status: data.status });
-      } catch (error) {
-        console.log(error);
-        throw error;
-      }
+    if (verifyResponse.status !== Status.OK) {
+      const msg = "Payment verification failed";
+      const error = new Error(msg);
+      error.statusCode = 404;
+      error.data = [];
+      console.log(verifyResponse);
+      throw error;
     }
+
+    let order, orderDetails;
+
+    try {
+      order = await payment.getOrder();
+    } catch (error) {
+      console.log(error);
+      throw error;
+    }
+
+    try {
+      orderDetails = await OrderManager.getOrderDetailsByOrderId(
+        order.dataValues.id
+      );
+    } catch (error) {
+      throw error;
+    }
+
+    const data = verifyResponse.data.data;
+    order = order.dataValues;
+    orderDetails = orderDetails.dataValues;
+
+    let newStatus = payment.dataValues.status;
+    newStatus =
+      data.amount !== parseInt(orderDetails.totalAmount)
+        ? Status.FAILED
+        : data.status;
+    console.log(newStatus, data.status);
+
+    try {
+      await payment.update({
+        option: data.payment_type,
+        currencyCode: data.currency,
+        status: newStatus,
+      });
+    } catch (error) {
+      console.log(error);
+      throw error;
+    }
+    return payment;
   } else {
-    const error = new Error("Payment not found");
-    error.statusCode = 404;
-    error.data = [];
-    throw error;
+    return payment;
   }
 };
 

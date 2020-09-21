@@ -51,34 +51,35 @@ exports.verify = async (req, res, next) => {
   }
 };
 
-exports.get = async (req, res, next) => {
-  const userId = req.userId;
-
-  const paymentReference = req.params.reference;
-
-  let paymentResponse;
+exports.getStatus = async (transactionReference = null) => {
+  let payment;
 
   try {
-    paymentResponse = await PaymentManager.get(paymentReference);
+    payment = await Payment.findOne({
+      where: {
+        transactionReference,
+      },
+      attributes: ["status"],
+    });
   } catch (error) {
-    console.log(error);
-    return Error.send(error.statusCode, error.message, [], next);
+    throw error;
   }
 
-  res.status(200).json({ status: "success", data: paymentResponse });
+  return payment.dataValues;
 };
 
-exports.getStatus = async (req, res, next) => {
-  const paymentReference = req.params.reference;
-
-  let status;
+exports.get = async (transactionReference = null) => {
+  let payment;
 
   try {
-    status = await PaymentManager.getStatus(paymentReference);
+    payment = await Payment.findOne({
+      where: {
+        transactionReference,
+      },
+    });
   } catch (error) {
-    console.log(error);
-    return Error.send(error.statusCode, error.message, [], next);
+    throw error;
   }
 
-  res.status(200).json(status);
+  return payment;
 };

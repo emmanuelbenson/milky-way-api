@@ -153,3 +153,15 @@ exports.updateOrderStatus = async (orderId, newStatus) => {
 
   return response;
 };
+
+exports.getOrderDetailsByOrderId = async (orderId) => {
+  let details;
+
+  try {
+    details = await OrderDetails.findOne({ where: { orderId } });
+    return details;
+  } catch (error) {
+    console.log(error);
+    throw error;
+  }
+};

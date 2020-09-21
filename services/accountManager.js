@@ -1,4 +1,5 @@
 const Constants = require("../constants/Constants");
+const Profile = require("../models/profile");
 const User = require("../models/user");
 
 const queryParams = [
@@ -18,7 +19,24 @@ exports.findByUUID = async (uuID) => {
       attributes: queryParams,
       where: { uuid: uuID },
     });
-  } catch (error) {}
+  } catch (error) {
+    throw error;
+  }
+  return user;
+};
+
+exports.find = async (id) => {
+  let user;
+
+  try {
+    user = await User.findOne({
+      attributes: queryParams,
+      where: { id },
+      include: Profile,
+    });
+  } catch (error) {
+    throw error;
+  }
   return user;
 };
 

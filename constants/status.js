@@ -17,4 +17,9 @@ module.exports = {
   DECLINED: "declined",
   VENDOR_SATISFIED: "vendor-satisfied",
   CUSTOMER_SATISFIED: "customer-satisfied",
+  BLOCK: "block",
+  BLOCKED: "blocked",
+  UNBLOCK: "unblock",
+  UNBLOCKED: "unblocked",
+  OK: 200,
 };

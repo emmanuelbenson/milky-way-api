@@ -1,8 +1,11 @@
+require("dotenv").config();
 const Sequelize = require("sequelize");
 
 const sequelize = require("../utils/database");
 
-const AuditTrailLog = sequelize.define("audit_trail_logs", {
+const User = require("./user");
+
+const Payment = sequelize.define("payments", {
   id: {
     type: Sequelize.INTEGER,
     autoIncrement: true,
@@ -13,31 +16,30 @@ const AuditTrailLog = sequelize.define("audit_trail_logs", {
     type: Sequelize.INTEGER,
     allowNull: false,
   },
-  actionType: {
-    type: Sequelize.STRING,
-    allowNull: false,
-  },
-  endPoint: {
+  orderId: {
     type: Sequelize.INTEGER,
     allowNull: false,
   },
-  endPointSource: {
+  amount: {
+    type: Sequelize.DOUBLE,
+  },
+  currencyCode: {
+    type: Sequelize.STRING,
+    defaultValue: process.env.NGN_CURRENCY,
+  },
+  option: {
+    type: Sequelize.STRING,
+  },
+  transactionId: {
+    type: Sequelize.STRING,
+  },
+  transactionReference: {
     type: Sequelize.STRING,
     allowNull: false,
   },
-  ipAddress: {
-    type: Sequelize.STRING,
-    allowNull: false,
-  },
-  userAgent: {
-    type: Sequelize.STRING,
-    allowNull: false,
-  },
-  requestBody: {
-    type: Sequelize.STRING,
-  },
-  responseBody: {
-    type: Sequelize.STRING,
+  status: {
+    type: Sequelize.INTEGER,
+    defaultValue: 1,
   },
   createdAt: {
     allowNull: false,
@@ -49,4 +51,4 @@ const AuditTrailLog = sequelize.define("audit_trail_logs", {
   },
 });
 
-module.exports = AuditTrailLog;
+module.exports = Payment;

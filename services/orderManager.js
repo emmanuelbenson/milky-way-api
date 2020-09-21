@@ -1,5 +1,7 @@
 const Order = require("../models/order");
 const OrderDetails = require("../models/orderDetails");
+const PaymentManger = require("./paymentManager");
+const AccountManager = require("./accountManager");
 const { Op } = require("sequelize");
 const sequelize = require("../utils/database");
 
@@ -21,7 +23,31 @@ exports.create = async (orderObj = {}, orderDetailsObj = {}) => {
     throw err;
   }
 
-  return newOrder;
+  const user = await AccountManager.find(orderObj.userId);
+
+  const customer = {
+    email: user.dataValues.email,
+    phoneNumber: user.dataValues.phoneNumber,
+    name: user.profile.firstName + " " + user.profile.lastName,
+  };
+
+  // Initiate payment
+  let initiatePaymentResponse;
+
+  initiatePaymentResponse = await PaymentManger.initiate(
+    orderObj.userId,
+    newOrder.id,
+    orderObj.orderNumber,
+    orderDetailsObj.totalAmount,
+    customer
+  );
+
+  const data = {
+    order: newOrder,
+    initiatePayment: initiatePaymentResponse.data,
+  };
+
+  return data;
 };
 
 exports.listAll = async (id) => {
@@ -66,11 +92,22 @@ exports.getOrderByID = async (id) => {
     throw err;
   }
 
-  return order;
+  const payment = await order.getPayment();
+
+  const data = {
+    order: order,
+    payment: payment,
+  };
+
+  return data;
 };
 
-exports.getOrderByOrderNumber = async (userId, orderNumber) => {
-  let order, details;
+exports.getOrderByOrderNumber = async (
+  userId,
+  orderNumber,
+  gasStationId = null
+) => {
+  let order;
 
   try {
     order = await Order.findOne({
@@ -79,12 +116,27 @@ exports.getOrderByOrderNumber = async (userId, orderNumber) => {
       },
       include: OrderDetails,
     });
+
+    if (!order) {
+      const error = new Error("Order not found");
+      error.statusCode = 404;
+      error.message = "Order not found";
+      error.data = [];
+      throw error;
+    }
   } catch (err) {
     console.log(err);
     throw err;
   }
 
-  return order;
+  const payment = await order.getPayment();
+
+  const data = {
+    order: order,
+    payment: payment,
+  };
+
+  return data;
 };
 
 exports.updateOrderStatus = async (orderId, newStatus) => {

@@ -2,42 +2,33 @@ const Sequelize = require("sequelize");
 
 const sequelize = require("../utils/database");
 
-const AuditTrailLog = sequelize.define("audit_trail_logs", {
+const User = require("./user");
+
+const VendorRating = sequelize.define("vendor_ratings", {
   id: {
     type: Sequelize.INTEGER,
     autoIncrement: true,
     allowNull: false,
     primaryKey: true,
   },
-  userId: {
+  customerId: {
     type: Sequelize.INTEGER,
     allowNull: false,
   },
-  actionType: {
-    type: Sequelize.STRING,
-    allowNull: false,
-  },
-  endPoint: {
+  vendorId: {
     type: Sequelize.INTEGER,
     allowNull: false,
   },
-  endPointSource: {
-    type: Sequelize.STRING,
+  orderId: {
+    type: Sequelize.INTEGER,
     allowNull: false,
   },
-  ipAddress: {
-    type: Sequelize.STRING,
-    allowNull: false,
+  rating: {
+    type: Sequelize.DOUBLE,
+    defaultValue: 1,
   },
-  userAgent: {
-    type: Sequelize.STRING,
-    allowNull: false,
-  },
-  requestBody: {
-    type: Sequelize.STRING,
-  },
-  responseBody: {
-    type: Sequelize.STRING,
+  comment: {
+    type: Sequelize.TEXT,
   },
   createdAt: {
     allowNull: false,
@@ -49,4 +40,4 @@ const AuditTrailLog = sequelize.define("audit_trail_logs", {
   },
 });
 
-module.exports = AuditTrailLog;
+module.exports = VendorRating;

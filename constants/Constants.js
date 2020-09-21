@@ -12,4 +12,5 @@ module.exports = {
   MAP_STATION_TYPE: "Feature",
   GEOMETRY_TYPE: "Point",
   MEASURE_UNIT: "Kg",
+  NG_CURRENCY_CODE: 566,
 };

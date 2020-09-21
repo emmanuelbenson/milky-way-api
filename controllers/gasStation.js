@@ -2,6 +2,8 @@ require("dotenv").config();
 const Status = require("../constants/status");
 const Constants = require("../constants/Constants");
 const gasStationManager = require("../services/gasStationManager");
+const Error = require("../utils/errors");
+const AuditTrail = require("../services/auditTrailManager");
 
 const ValidateInput = require("../utils/validateInputs");
 
@@ -11,8 +13,8 @@ exports.getAll = async (req, res, next) => {
   try {
     stations = await gasStationManager.all();
   } catch (err) {
-    next(err);
-    return;
+    console.log(err);
+    return Error.send(500, "Internal server error", [], next);
   }
 
   res.status(200).json({
@@ -51,17 +53,8 @@ exports.add = async (req, res, next) => {
   try {
     newStation = await gasStationManager.add(data);
   } catch (err) {
-    console.log(err.errors[0]);
-    const error = err.errors[0];
-    const errors = new Error(error.message);
-    errors.statusCode = 422;
-    errors.data = {
-      msg: error.type,
-      param: error.path,
-      location: "body",
-    };
-    next(errors);
-    return;
+    console.log(err);
+    return Error.send(500, "Internal server error", [], next);
   }
 
   res.status(201).json({
@@ -81,11 +74,11 @@ exports.getStation = async (req, res, next) => {
     station = await gasStationManager.find(id);
   } catch (err) {
     console.log(err);
+    return Error.send(500, "Internal server error", [], next);
   }
 
   if (!station) {
-    res.status(404).json({ message: "Gas station not found", data: station });
-    return;
+    return Error.send(404, "Gas station not found", [], next);
   }
 
   res.status(200).json(station);
@@ -99,13 +92,11 @@ exports.updateStation = async (req, res, next) => {
     station = await gasStationManager.find(id);
   } catch (err) {
     console.log(err);
+    return Error.send(500, "Internal server error", [], next);
   }
 
   if (!station) {
-    res.status(404).json({
-      message: "Gas station not found",
-    });
-    return;
+    return Error.send(404, "Gas station not found", [], next);
   }
 
   let url, hours, phone, updateResponse;
@@ -138,8 +129,7 @@ exports.updateStation = async (req, res, next) => {
     updateResponse = await gasStationManager.update(id, newData);
   } catch (err) {
     console.log(err);
-    next(err);
-    return;
+    return Error.send(500, "Internal server error", [], next);
   }
 
   if (updateResponse[0] == 1) {
@@ -150,8 +140,10 @@ exports.updateStation = async (req, res, next) => {
     return;
   }
 
-  res.status(500).send({
-    status: "error",
-    message: "Could not update station at this moment. Please try again later",
-  });
+  return Error.send(
+    500,
+    "Could not update station at this moment. Please try again later",
+    [],
+    next
+  );
 };

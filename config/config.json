@@ -11,7 +11,7 @@
     "username": "mantchi",
     "password": "Chido@1118",
     "database": "milkyway_development",
-    "host": "167.99.236.194",
+    "host": "127.0.0.1",
     "dialect": "mysql",
     "port": "3306"
   },

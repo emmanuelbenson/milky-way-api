@@ -45,6 +45,9 @@ app.use((req, res, next) => {
   next();
 });
 
+app.use("/", (req, res, next) => {
+  res.status(200).json({ message: "Welcome to Milkyway API v1" });
+});
 app.use("/api/v1/auth", checkSource, authRoutes);
 app.use("/api/v1/admin", checkSource, adminRoutes);
 app.use("/api/v1/address", checkSource, addressRoutes);

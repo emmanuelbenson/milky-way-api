@@ -4,10 +4,27 @@ const PaymentManger = require("./paymentManager");
 const AccountManager = require("./accountManager");
 const { Op } = require("sequelize");
 const sequelize = require("../utils/database");
+const Status = require("../constants/status");
+const TransactionLimitManager = require("./transactionLimitManager");
 
 exports.create = async (orderObj = {}, orderDetailsObj = {}) => {
   let newOrder;
   let newOrderDetails;
+
+  const limitReached = await TransactionLimitManager.reachedLimit(
+    orderObj.gasStationId
+  );
+
+  if (limitReached) {
+    const error = new Error(
+      "This station cannot fulfill your order at the moment. Try another station"
+    );
+    error.message =
+      "This station cannot fulfill your order at the moment. Try another station";
+    error.statusCode = 404;
+    error.data = [];
+    throw error;
+  }
 
   try {
     const result = await sequelize.transaction(async (t) => {
@@ -164,4 +181,31 @@ exports.getOrderDetailsByOrderId = async (orderId) => {
     console.log(error);
     throw error;
   }
+};
+
+exports.getStartAndEndDate = async (start, end) => {
+  let orders;
+
+  try {
+    orders = await Order.findAll({
+      where: {
+        [Op.and]: [
+          {
+            updatedAt: {
+              [Op.and]: {
+                [Op.between]: [start, end], //[moment().startOf("week"), moment().endOf("week")]
+              },
+            },
+          },
+          {
+            status: Status.COMPLETED,
+          },
+        ],
+      },
+    });
+  } catch (error) {
+    throw error;
+  }
+
+  return orders;
 };

@@ -20,6 +20,7 @@ const subscriptionRoutes = require("./routes/subscribtion");
 const paymentHookRoute = require("./routes/hooks");
 const paymentRoutes = require("./routes/payment");
 const vendorTransactionsRoute = require("./routes/vendor");
+const transactionLimitRoute = require("./routes/transactionLimit");
 
 /**
  * External requests
@@ -55,9 +56,9 @@ app.use("/api/v1/rating/customer", checkSource, vendorRatingRoutes);
 app.use("/api/v1/subscription", checkSource, subscriptionRoutes);
 app.use("/api/v1/payment", checkSource, paymentRoutes);
 app.use("/api/v1/vendor/transaction", checkSource, vendorTransactionsRoute);
+app.use("/api/v1/transaction-limit", checkSource, transactionLimitRoute);
 
 app.use((error, req, res, next) => {
-  console.log(error);
   const status = error.statusCode || 500;
   const message = status == 500 ? "Internal server error" : error.message;
   const data = error.data;

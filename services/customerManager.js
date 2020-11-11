@@ -5,7 +5,7 @@ exports.getDetails = async (id) => {
   const foundCustomer = await Customer.findOne({
     where: {
       id: id,
-      userType: Constants.CUSTOMER_TYPE,
+      userType: parseInt(Constants.CUSTOMER_TYPE),
       activated: Constants.ACTIVATE,
     },
   });

@@ -1,0 +1,59 @@
+"use strict";
+
+module.exports = {
+  up: async (queryInterface, Sequelize) => {
+    /**
+     * Add altering commands here.
+     *
+     * Example:
+     * await queryInterface.createTable('users', { id: Sequelize.INTEGER });
+     */
+    await queryInterface.createTable("transaction_limits", {
+      id: {
+        type: Sequelize.INTEGER,
+        autoIncrement: true,
+        allowNull: false,
+        primaryKey: true,
+      },
+      transactionType: {
+        type: Sequelize.STRING,
+        allowNull: false,
+        unique: true,
+      },
+      period: {
+        type: Sequelize.ENUM,
+        values: ["daily", "weekly", "monthly", "quarterly", "yearly"],
+        defaultValue: "daily",
+      },
+      limit: {
+        type: Sequelize.STRING,
+        allowNull: false,
+        defaultValue: 1,
+      },
+      status: {
+        type: Sequelize.ENUM,
+        values: ["enabled", "disabled"],
+        defaultValue: "enabled",
+        allowNull: false,
+      },
+      createdAt: {
+        allowNull: false,
+        type: Sequelize.DATE,
+      },
+      updatedAt: {
+        allowNull: false,
+        type: Sequelize.DATE,
+      },
+    });
+  },
+
+  down: async (queryInterface, Sequelize) => {
+    /**
+     * Add reverting commands here.
+     *
+     * Example:
+     * await queryInterface.dropTable('users');
+     */
+    await queryInterface.dropTable("transaction_limits");
+  },
+};

@@ -59,7 +59,6 @@ exports.placeOrder = async (req, res, next) => {
       [],
       next
     );
-    return;
   }
 
   const orderDetails = {
@@ -74,8 +73,12 @@ exports.placeOrder = async (req, res, next) => {
     createOrderResponse = await OrderManager.create(order, orderDetails);
   } catch (err) {
     console.log(err);
-    return Error.send(500, "Internal server error", [], next);
-    return;
+    return Error.send(
+      500,
+      err.message ? err.message : "Internal server error",
+      err,
+      next
+    );
   }
 
   const data = {

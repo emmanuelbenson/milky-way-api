@@ -5,6 +5,9 @@ const sequelize = require("../utils/database");
 const Profile = require("./profile");
 const GasStation = require("./gas_station");
 const Address = require("./address");
+const VendorRating = require("./vendorRating");
+const Subscription = require("./subscription");
+const AuditTrail = require("./audit_trail_log");
 
 const User = sequelize.define("user", {
   id: {
@@ -49,5 +52,15 @@ User.hasOne(Address);
 Profile.belongsTo(User);
 GasStation.belongsTo(User);
 Address.belongsTo(User);
+
+User.hasMany(VendorRating, {
+  foreignKey: "customerId",
+});
+
+User.hasOne(Subscription);
+Subscription.belongsTo(User);
+
+User.hasMany(AuditTrail);
+AuditTrail.belongsTo(User);
 
 module.exports = User;

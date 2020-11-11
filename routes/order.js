@@ -32,6 +32,12 @@ router.post(
       .withMessage("action required")
       .trim()
       .escape(),
+    body("orderId")
+      .not()
+      .isEmpty()
+      .withMessage("Order ID is required")
+      .trim()
+      .escape(),
   ],
   orderController.updateOrderState
 );

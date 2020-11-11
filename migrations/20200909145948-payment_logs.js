@@ -8,7 +8,7 @@ module.exports = {
      * Example:
      * await queryInterface.createTable('users', { id: Sequelize.INTEGER });
      */
-    await queryInterface.createTable("audit_trail_logs", {
+    await queryInterface.createTable("payments", {
       id: {
         type: Sequelize.INTEGER,
         autoIncrement: true,
@@ -19,31 +19,38 @@ module.exports = {
         type: Sequelize.INTEGER,
         allowNull: false,
       },
-      actionType: {
-        type: Sequelize.STRING,
+      orderId: {
+        type: Sequelize.INTEGER,
         allowNull: false,
       },
-      endPoint: {
+      transactionReference: {
         type: Sequelize.STRING,
+        allowNull: true,
+      },
+      transactionId: {
+        type: Sequelize.STRING,
+        allowNull: true,
+      },
+      amount: {
+        type: Sequelize.DECIMAL(10, 2),
         allowNull: false,
       },
-      endPointSource: {
+      currencyCode: {
         type: Sequelize.STRING,
-        allowNull: false,
       },
-      ipAddress: {
+      option: {
         type: Sequelize.STRING,
-        allowNull: false,
       },
-      userAgent: {
-        type: Sequelize.STRING,
-        allowNull: false,
-      },
-      requestBody: {
-        type: Sequelize.TEXT,
-      },
-      responseBody: {
-        type: Sequelize.TEXT,
+      status: {
+        type: Sequelize.ENUM,
+        values: [
+          "pending",
+          "failed",
+          "completed",
+          "success",
+          "successful",
+          "declined",
+        ],
       },
       createdAt: {
         allowNull: false,
@@ -63,6 +70,6 @@ module.exports = {
      * Example:
      * await queryInterface.dropTable('users');
      */
-    await queryInterface.dropTable("audit_trail_logs");
+    await queryInterface.dropTable("payments");
   },
 };

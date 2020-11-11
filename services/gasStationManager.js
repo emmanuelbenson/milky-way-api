@@ -41,6 +41,18 @@ exports.find = async (id) => {
   return found;
 };
 
+exports.findByUserId = async (userId) => {
+  let station;
+
+  try {
+    station = await GasStation.findOne({ where: { userId } });
+  } catch (err) {
+    throw err;
+  }
+
+  return station;
+};
+
 exports.update = async (id, fields = {}) => {
   let updateResponse;
   try {

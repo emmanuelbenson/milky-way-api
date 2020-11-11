@@ -20,11 +20,11 @@ exports.add = async (req, res, next) => {
     foundAddress = await addressMgr.findByUserId(userId);
   } catch (err) {
     console.log(err);
-    throw err;
+    Error.send(500, "Internal server error", [], next);
   }
 
   if (foundAddress) {
-    Error.send(403, "You already have an address", next);
+    Error.send(403, "You already have an address", [], next);
   }
 
   let saveResponse;
@@ -32,8 +32,8 @@ exports.add = async (req, res, next) => {
   try {
     saveResponse = await addressMgr.save(userId, street, lga, state, lat, lng);
   } catch (err) {
-    console.log("SAVE_ERR: ", err);
-    throw err;
+    console.log(err);
+    Error.send(500, "Internal server error", [], next);
   }
 
   res.status(201).json({
@@ -54,7 +54,7 @@ exports.update = async (req, res, next) => {
     foundAddress = await addressMgr.findByUserId(userId);
   } catch (err) {
     console.log(err);
-    throw err;
+    Error.send(500, "Internal server error", [], next);
   }
 
   if (!foundAddress) {
@@ -71,7 +71,7 @@ exports.update = async (req, res, next) => {
     await addressMgr.update(userId, updateFields);
   } catch (err) {
     console.log(err);
-    throw err;
+    return Error.send(500, "Internal server error", [], next);
   }
 
   const data = {
@@ -90,15 +90,13 @@ exports.find = async (req, res, next) => {
     foundAddress = await addressMgr.findByUUId(UUId);
   } catch (err) {
     console.log(err);
-    next(err);
+    return Error.send(500, "Internal server error", [], next);
   }
 
   if (foundAddress) {
     const data = foundAddress;
     res.status(200).json(data);
   } else {
-    res
-      .status(404)
-      .json({ message: "Address not found for this user", data: [] });
+    return Error.send(404, "Address not found for this user", [], next);
   }
 };

@@ -2,42 +2,33 @@ const Sequelize = require("sequelize");
 
 const sequelize = require("../utils/database");
 
-const AuditTrailLog = sequelize.define("audit_trail_logs", {
+const TransactionLimit = sequelize.define("transaction_limits", {
   id: {
     type: Sequelize.INTEGER,
     autoIncrement: true,
     allowNull: false,
     primaryKey: true,
   },
-  userId: {
-    type: Sequelize.INTEGER,
-    allowNull: false,
-  },
-  actionType: {
+  transactionType: {
     type: Sequelize.STRING,
     allowNull: false,
+    unique: true,
   },
-  endPoint: {
-    type: Sequelize.INTEGER,
-    allowNull: false,
+  period: {
+    type: Sequelize.ENUM,
+    values: ["daily", "weekly", "monthly", "quarterly", "yearly"],
+    defaultValue: "daily",
   },
-  endPointSource: {
+  limit: {
     type: Sequelize.STRING,
     allowNull: false,
+    defaultValue: 1,
   },
-  ipAddress: {
-    type: Sequelize.STRING,
+  status: {
+    type: Sequelize.ENUM,
+    values: ["enabled", "disabled"],
+    defaultValue: "enabled",
     allowNull: false,
-  },
-  userAgent: {
-    type: Sequelize.STRING,
-    allowNull: false,
-  },
-  requestBody: {
-    type: Sequelize.STRING,
-  },
-  responseBody: {
-    type: Sequelize.STRING,
   },
   createdAt: {
     allowNull: false,
@@ -49,4 +40,4 @@ const AuditTrailLog = sequelize.define("audit_trail_logs", {
   },
 });
 
-module.exports = AuditTrailLog;
+module.exports = TransactionLimit;

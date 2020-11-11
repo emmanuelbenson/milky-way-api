@@ -23,8 +23,7 @@ exports.signup = async (req, res, next) => {
   const userType = parseInt(req.body.userType);
 
   if (!acceptableUserType.includes(userType)) {
-    Error.send(400, "Invalid User Type", next);
-    return;
+    return Error.send(400, "Invalid User Type", [], next);
   }
 
   const { email, password, phoneNumber, firstName, lastName } = req.body;
@@ -64,7 +63,12 @@ exports.signin = async (req, res, next) => {
   const foundUser = await User.findOne({ where: { email: email } });
 
   if (!foundUser) {
-    Error.send(404, "These credentials do not match our records.", next);
+    return Error.send(
+      404,
+      "These credentials do not match our records.",
+      [],
+      next
+    );
   }
 
   const user = foundUser.dataValues;
@@ -72,7 +76,12 @@ exports.signin = async (req, res, next) => {
   const hashedPassword = await bcrypt.compare(password, user.password);
 
   if (!hashedPassword) {
-    Error.send(401, "These credentials do not match our records.", next);
+    return Error.send(
+      401,
+      "These credentials do not match our records.",
+      [],
+      next
+    );
   }
 
   let token;
@@ -87,7 +96,7 @@ exports.signin = async (req, res, next) => {
     );
   } catch (err) {
     console.log(err);
-    Error.send(500, "Internal server error", next);
+    return Error.send(500, "Internal server error", [], next);
   }
 
   const data = {
@@ -106,7 +115,7 @@ exports.resetPassword = async (req, res, next) => {
   crypto.randomBytes(32, (err, buffer) => {
     if (err !== null) {
       console.log(err);
-      Error.send(500, "Internal server error", next);
+      return Error.send(500, "Internal server error", [], next);
     }
 
     const token = buffer.toString("hex");
@@ -125,7 +134,7 @@ exports.resetPassword = async (req, res, next) => {
       })
       .catch((err) => {
         console.log(err);
-        Error.send(500, "Internal server error", next);
+        return Error.send(500, "Internal server error", [], next);
       });
   });
 };
@@ -151,7 +160,7 @@ exports.passwordReset = async (req, res, next) => {
       },
     ];
 
-    Error.send(500, "Token expired", data, next);
+    return Error.send(500, "Token expired", data, next);
   }
 
   if (foundToken.dataValues.expiresIn < moment()) {
@@ -164,7 +173,7 @@ exports.passwordReset = async (req, res, next) => {
       },
     ];
 
-    Error.send(500, "Token expired", data, next);
+    return Error.send(500, "Token expired", data, next);
   }
 
   const hashedPassword = await bcrypt.hash(newPassword, 12);
@@ -174,9 +183,10 @@ exports.passwordReset = async (req, res, next) => {
   });
 
   if (!updateResponse) {
-    Error.send(
+    return Error.send(
       500,
       "Cannot update password at the moment. Please try again later",
+      [],
       next
     );
   }
@@ -210,7 +220,7 @@ exports.toggleAccountState = async (req, res, next) => {
     response = await AccountManager.toggleAccountActivation(uuid, action);
   } catch (err) {
     console.log(err);
-    Error.send(500, "Internal server error", next);
+    return Error.send(500, "Internal server error", [], next);
   }
 
   res.status(200).json({

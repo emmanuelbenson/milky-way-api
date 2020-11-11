@@ -8,41 +8,30 @@ module.exports = {
      * Example:
      * await queryInterface.createTable('users', { id: Sequelize.INTEGER });
      */
-    await queryInterface.createTable("audit_trail_logs", {
+    await queryInterface.createTable("vendor_ratings", {
       id: {
         type: Sequelize.INTEGER,
         autoIncrement: true,
         allowNull: false,
         primaryKey: true,
       },
-      userId: {
+      customerId: {
         type: Sequelize.INTEGER,
         allowNull: false,
       },
-      actionType: {
-        type: Sequelize.STRING,
+      vendorId: {
+        type: Sequelize.INTEGER,
         allowNull: false,
       },
-      endPoint: {
-        type: Sequelize.STRING,
+      orderId: {
+        type: Sequelize.INTEGER,
         allowNull: false,
       },
-      endPointSource: {
-        type: Sequelize.STRING,
-        allowNull: false,
+      rating: {
+        type: Sequelize.DOUBLE,
+        defaultValue: 1,
       },
-      ipAddress: {
-        type: Sequelize.STRING,
-        allowNull: false,
-      },
-      userAgent: {
-        type: Sequelize.STRING,
-        allowNull: false,
-      },
-      requestBody: {
-        type: Sequelize.TEXT,
-      },
-      responseBody: {
+      comment: {
         type: Sequelize.TEXT,
       },
       createdAt: {
@@ -63,6 +52,6 @@ module.exports = {
      * Example:
      * await queryInterface.dropTable('users');
      */
-    await queryInterface.dropTable("audit_trail_logs");
+    await queryInterface.dropTable("vendor_ratings");
   },
 };

@@ -1,8 +1,9 @@
-const Vendor = require("../models/user");
 const Constants = require("../constants/Constants");
 const Status = require("../constants/status");
-const Product = require("../models/product");
 const User = require("../models/user");
+const AccountManager = require("./accountManager");
+const Transaction = require("../models/order");
+const GasStationManager = require("../services/gasStationManager");
 
 exports.find = async (id) => {
   const foundVendor = await User.findOne({
@@ -34,43 +35,29 @@ exports.find = async (id) => {
   }
 };
 
-exports.findByProductId = async (productId) => {
-  const foundProduct = await Product.findOne({
-    where: {
-      id: productId,
-    },
-  });
+exports.getTransactions = async (userId) => {
+  let gasStation;
+  let orders;
 
-  if (foundProduct) {
-    let vendor;
-
-    vendor = foundProduct.getUser();
-
-    return vendor;
-  } else {
-    return null;
+  try {
+    gasStation = await GasStationManager.findByUserId(userId);
+    if (!gasStation) {
+      const error = new Error("Gas Station not found");
+      error.statusCode = 404;
+      error.message = "Gas Station not found";
+      error.data = [];
+      throw error;
+    }
+  } catch (error) {
+    throw error;
   }
-};
 
-exports.getProduct = async (id) => {
-  const foundVendor = await User.findOne({
-    where: {
-      id: id,
-      userType: Constants.VENDOR_TYPE,
-      activated: Constants.ACTIVATE,
-    },
-  });
-
-  if (foundVendor) {
-    delete foundVendor.dataValues.password;
-    let product;
-
-    product = await foundVendor.getProduct();
-
-    const foundProduct = product.dataValues;
-
-    return foundProduct;
-  } else {
-    return null;
+  try {
+    orders = await gasStation.getOrders();
+  } catch (error) {
+    console.log(error);
+    throw error;
   }
+
+  return orders;
 };

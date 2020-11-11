@@ -8,42 +8,33 @@ module.exports = {
      * Example:
      * await queryInterface.createTable('users', { id: Sequelize.INTEGER });
      */
-    await queryInterface.createTable("audit_trail_logs", {
+    await queryInterface.createTable("transaction_limits", {
       id: {
         type: Sequelize.INTEGER,
         autoIncrement: true,
         allowNull: false,
         primaryKey: true,
       },
-      userId: {
-        type: Sequelize.INTEGER,
-        allowNull: false,
-      },
-      actionType: {
+      transactionType: {
         type: Sequelize.STRING,
         allowNull: false,
+        unique: true,
       },
-      endPoint: {
+      period: {
+        type: Sequelize.ENUM,
+        values: ["daily", "weekly", "monthly", "quarterly", "yearly"],
+        defaultValue: "daily",
+      },
+      limit: {
         type: Sequelize.STRING,
         allowNull: false,
+        defaultValue: 1,
       },
-      endPointSource: {
-        type: Sequelize.STRING,
+      status: {
+        type: Sequelize.ENUM,
+        values: ["enabled", "disabled"],
+        defaultValue: "enabled",
         allowNull: false,
-      },
-      ipAddress: {
-        type: Sequelize.STRING,
-        allowNull: false,
-      },
-      userAgent: {
-        type: Sequelize.STRING,
-        allowNull: false,
-      },
-      requestBody: {
-        type: Sequelize.TEXT,
-      },
-      responseBody: {
-        type: Sequelize.TEXT,
       },
       createdAt: {
         allowNull: false,
@@ -63,6 +54,6 @@ module.exports = {
      * Example:
      * await queryInterface.dropTable('users');
      */
-    await queryInterface.dropTable("audit_trail_logs");
+    await queryInterface.dropTable("transaction_limits");
   },
 };

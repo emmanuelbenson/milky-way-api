@@ -2,6 +2,8 @@ const Sequelize = require("sequelize");
 
 const sequelize = require("../utils/database");
 const OrderDetails = require("./orderDetails");
+const Payment = require("./payment");
+const GasStation = require("./gas_station");
 
 const Order = sequelize.define("order", {
   id: {
@@ -42,5 +44,11 @@ const Order = sequelize.define("order", {
 
 Order.hasOne(OrderDetails);
 OrderDetails.belongsTo(Order);
+
+Order.hasOne(Payment);
+Payment.belongsTo(Order);
+
+Order.belongsTo(GasStation);
+GasStation.hasMany(Order);
 
 module.exports = Order;

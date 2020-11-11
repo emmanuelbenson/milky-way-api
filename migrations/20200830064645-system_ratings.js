@@ -8,7 +8,7 @@ module.exports = {
      * Example:
      * await queryInterface.createTable('users', { id: Sequelize.INTEGER });
      */
-    await queryInterface.createTable("audit_trail_logs", {
+    await queryInterface.createTable("system_ratings", {
       id: {
         type: Sequelize.INTEGER,
         autoIncrement: true,
@@ -19,31 +19,16 @@ module.exports = {
         type: Sequelize.INTEGER,
         allowNull: false,
       },
-      actionType: {
-        type: Sequelize.STRING,
-        allowNull: false,
+      rating: {
+        type: Sequelize.DOUBLE,
+        defaultValue: 1,
       },
-      endPoint: {
-        type: Sequelize.STRING,
-        allowNull: false,
-      },
-      endPointSource: {
-        type: Sequelize.STRING,
-        allowNull: false,
-      },
-      ipAddress: {
-        type: Sequelize.STRING,
-        allowNull: false,
-      },
-      userAgent: {
-        type: Sequelize.STRING,
-        allowNull: false,
-      },
-      requestBody: {
+      comment: {
         type: Sequelize.TEXT,
       },
-      responseBody: {
-        type: Sequelize.TEXT,
+      status: {
+        type: Sequelize.INTEGER,
+        allowNull: false,
       },
       createdAt: {
         allowNull: false,
@@ -63,6 +48,6 @@ module.exports = {
      * Example:
      * await queryInterface.dropTable('users');
      */
-    await queryInterface.dropTable("audit_trail_logs");
+    await queryInterface.dropTable("system_ratings");
   },
 };

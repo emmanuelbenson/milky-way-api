@@ -1,18 +1,13 @@
 require("dotenv").config();
-const { validationResult } = require("express-validator");
+const ValidateInput = require("../utils/validateInputs");
 const Status = require("../constants/status");
 const Constants = require("../constants/Constants");
+const Error = require("../utils/errors");
 
 const accountMgr = require("../services/accountManager");
 
 exports.toggleAccountActivation = (req, res, next) => {
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    const error = new Error("Validation fields");
-    error.statusCode = 422;
-    error.data = errors.array();
-    throw error;
-  }
+  ValidateInput.validate(req, res, next);
 
   const accountAction =
     req.body.action === Status.ACTIVATE
@@ -36,6 +31,7 @@ exports.toggleAccountActivation = (req, res, next) => {
       }
     })
     .catch((err) => {
-      throw err;
+      console.log(err);
+      Error.send(500, "Internal server error", [], next);
     });
 };

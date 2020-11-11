@@ -2,17 +2,28 @@ const Request = require("../models/request");
 const { Op } = require("sequelize");
 const sequelize = require("../utils/database");
 
-exports.create = async (requestDataObj) => {
+exports.create = async (
+  userId,
+  requestId,
+  requestServiceManager,
+  requestServiceManagerMethod,
+  serviceManagerMethodArrayParam
+) => {
   let createResponse;
 
   try {
-    createResponse = await Request.create(requestDataObj);
+    createResponse = await Request.create({
+      userId,
+      requestId,
+      requestServiceManager,
+      requestServiceManagerMethod,
+      serviceManagerMethodArrayParam,
+    });
   } catch (err) {
-    console.log(err);
     throw err;
   }
 
-  return createResponse.dataValues.id;
+  return createResponse.dataValues.requestId;
 };
 
 exports.find = async (requestId) => {
@@ -25,7 +36,6 @@ exports.find = async (requestId) => {
       },
     });
   } catch (err) {
-    console.log(err);
     throw err;
   }
 

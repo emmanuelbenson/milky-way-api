@@ -1,7 +1,7 @@
 {
   "local": {
-    "username": "root",
-    "password": "root",
+    "username": "mantchi",
+    "password": "Chido@1118",
     "database": "milkyway_development",
     "host": "127.0.0.1",
     "dialect": "mysql",

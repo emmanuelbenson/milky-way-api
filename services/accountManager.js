@@ -1,4 +1,5 @@
 const Constants = require("../constants/Constants");
+const Status = require("../constants/status");
 const { GeneralError } = require("../libs/errors/errors");
 const Profile = require("../models/profile");
 const User = require("../models/user");
@@ -21,6 +22,19 @@ exports.accountExists = async (phoneNumber = null) => {
     return false;
   } catch (error) {
     throw new GeneralError();
+  }
+};
+
+exports.isVerified = async (phoneNumber = null) => {
+  try {
+    const user = await this.findByPhoneNumber(phoneNumber);
+
+    if (user.dataValues.activated === Constants.ACCOUNT_ACTIVATED) {
+      return true;
+    }
+    return false;
+  } catch (error) {
+    throw error;
   }
 };
 
@@ -47,6 +61,20 @@ exports.addProfile = async (profile = {}) => {
   }
 };
 
+exports.findByPhoneNumber = async (phoneNumber) => {
+  let user;
+
+  try {
+    user = await User.findOne({
+      where: { phoneNumber },
+      include: Profile,
+    });
+  } catch (error) {
+    throw error;
+  }
+  return user;
+};
+
 exports.findByUUID = async (uuID) => {
   let user;
 
@@ -54,6 +82,7 @@ exports.findByUUID = async (uuID) => {
     user = await User.findOne({
       attributes: queryParams,
       where: { uuid: uuID },
+      include: Profile,
     });
   } catch (error) {
     throw error;

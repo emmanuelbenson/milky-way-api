@@ -26,39 +26,37 @@ exports.signup = async (req, res, next) => {
   const userType = parseInt(req.body.userType);
 
   if (!acceptableUserType.includes(userType)) {
-    error = new errors.UnprocessableEntity(
-      "Invalid User Type",
-      userType,
-      "userType",
-      "body"
+    next(
+      new errors.UnprocessableEntity(
+        "Invalid User Type",
+        userType,
+        "userType",
+        "body"
+      )
     );
-    next(error);
     return;
   }
 
   const { email, password, phoneNumber, firstName, lastName } = req.body;
 
   if (email && !ValidateInput.isEmail(email)) {
-    error = new errors.UnprocessableEntity(
-      "Email is invalid",
-      email,
-      "email",
-      "body"
+    next(
+      new errors.UnprocessableEntity("Email is invalid", email, "email", "body")
     );
-    next(error);
     return;
   }
 
   const isExists = await AccountManager.accountExists(phoneNumber);
 
   if (isExists) {
-    error = new errors.UnprocessableEntity(
-      "Account already exist",
-      phoneNumber,
-      "phoneNumber",
-      "body"
+    next(
+      new errors.UnprocessableEntity(
+        "Account already exist",
+        phoneNumber,
+        "phoneNumber",
+        "body"
+      )
     );
-    next(error);
     return;
   }
 
@@ -77,8 +75,9 @@ exports.signup = async (req, res, next) => {
   try {
     newUser = await AccountManager.addUser(userObj);
   } catch (error) {
-    console.log(error.errors[0].ValidationErrorItem);
-    throw new errors.GeneralError();
+    console.log(error);
+    next(new errors.GeneralError());
+    return;
   }
 
   let profileObj = {
@@ -102,31 +101,47 @@ exports.signup = async (req, res, next) => {
 
 exports.signin = async (req, res, next) => {
   ValidateInput.validate(req, res, next);
+  let error;
 
-  const { email, password } = req.body;
+  const { phoneNumber, password } = req.body;
 
-  const foundUser = await User.findOne({ where: { email: email } });
+  let foundUser;
+
+  try {
+    foundUser = await AccountManager.findByPhoneNumber(phoneNumber);
+  } catch (error) {
+    console.log(error);
+    next(new errors.GeneralError());
+    return;
+  }
 
   if (!foundUser) {
-    return Error.send(
-      404,
-      "These credentials do not match our records.",
-      [],
-      next
-    );
+    next(new errors.NotFound("These credentials do not match our records"));
+    return;
   }
 
   const user = foundUser.dataValues;
 
-  const hashedPassword = await bcrypt.compare(password, user.password);
+  let hashedPassword;
+
+  try {
+    hashedPassword = await bcrypt.compare(password, user.password);
+  } catch (error) {
+    console.log(error);
+    next(new errors.GeneralError());
+    return;
+  }
 
   if (!hashedPassword) {
-    return Error.send(
-      401,
-      "These credentials do not match our records.",
-      [],
-      next
-    );
+    next(new errors.NotFound("These credentials do not match our records"));
+    return;
+  }
+
+  const isVerified = await AccountManager.isVerified(user.phoneNumber);
+
+  if (!isVerified) {
+    next(new errors.Unauthorized("Unverified account"));
+    return;
   }
 
   let token;
@@ -141,14 +156,15 @@ exports.signin = async (req, res, next) => {
     );
   } catch (err) {
     console.log(err);
-    return Error.send(500, "Internal server error", [], next);
+    next(new errors.GeneralError());
+    return;
   }
+
+  delete user.password;
 
   const data = {
     token: token,
-    userId: user.userId,
-    uuid: user.uuid,
-    userType: user.userType,
+    userDetails: user,
   };
   res.status(200).json({ data: data });
 };
@@ -160,7 +176,8 @@ exports.resetPassword = async (req, res, next) => {
   crypto.randomBytes(32, (err, buffer) => {
     if (err !== null) {
       console.log(err);
-      return Error.send(500, "Internal server error", [], next);
+      next(errors.GeneralError());
+      return;
     }
 
     const token = buffer.toString("hex");

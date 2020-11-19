@@ -1,5 +1,10 @@
 class GeneralError extends Error {
-  constructor(message, value = "", param = "", location = "body") {
+  constructor(
+    message = "Internal server error",
+    value = "",
+    param = "",
+    location = "body"
+  ) {
     super();
     this.message = message;
     this.data = value && param && location && [{ value, param, location }];

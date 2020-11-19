@@ -27,7 +27,12 @@ router.post(
 router.post(
   "/signin",
   [
-    body("email").not().isEmpty().trim().escape(),
+    body("phoneNumber")
+      .not()
+      .isEmpty()
+      .trim()
+      .isLength({ min: 7, max: 11 })
+      .escape(),
     body("password").not().isEmpty().trim().escape(),
   ],
   authController.signin

@@ -1,15 +1,15 @@
 {
   "local": {
-    "username": "mantchi",
-    "password": "Chido@1118",
+    "username": "root",
+    "password": "root",
     "database": "milkyway_development",
     "host": "127.0.0.1",
     "dialect": "mysql",
     "port": "3306"
   },
   "development": {
-    "username": "mantchi",
-    "password": "Chido@1118",
+    "username": "root",
+    "password": "root",
     "database": "milkyway_development",
     "host": "127.0.0.1",
     "dialect": "mysql",
@@ -24,12 +24,12 @@
     "port": "3306"
   },
   "production": {
-    "username": "doadmin",
-    "password": "sd8blyc8mm6rabfo",
-    "database": "defaultdb",
-    "host": "milky-waydb-do-user-4390099-0.a.db.ondigitalocean.com",
+    "username": "mantchi",
+    "password": "Chido@1118",
+    "database": "milkyway_development",
+    "host": "167.99.236.194",
     "dialect": "mysql",
-    "port": "25060"
+    "port": "3306"
   },
   "payment": {
     "CURRENCY": "NGN",

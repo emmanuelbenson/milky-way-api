@@ -1,5 +1,6 @@
 const express = require("express");
 const app = express();
+const cors = require("cors");
 const helmet = require("helmet");
 const { limiter } = require("./utils/rateLimiter");
 const xss = require("xss-clean");
@@ -28,6 +29,7 @@ const transactionLimitRoute = require("./routes/transactionLimit");
 app.use("/api/v1/payment", paymentHookRoute);
 
 const checkSource = require("./middlewares/check-source");
+const handleErrors = require("./middlewares/handleErrors");
 
 app.use(xss());
 app.use("/api", limiter);
@@ -35,15 +37,17 @@ app.use(helmet());
 app.use(express.json({ limit: "20kb" }));
 app.use(useragent.express());
 
-app.use((req, res, next) => {
-  res.setHeader("Access-Control-Allow-Origin", "*");
-  res.setHeader(
-    "Access-Control-Allow-Methods",
-    "GET, POST, PUT, PATCH, DELETE"
-  );
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
-  next();
-});
+app.use(cors());
+
+// app.use((req, res, next) => {
+//   res.setHeader("Access-Control-Allow-Origin", "*");
+//   res.setHeader(
+//     "Access-Control-Allow-Methods",
+//     "GET, POST, PUT, PATCH, DELETE"
+//   );
+//   res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+//   next();
+// });
 
 app.use("/api/v1/auth", checkSource, authRoutes);
 app.use("/api/v1/admin", checkSource, adminRoutes);
@@ -58,12 +62,14 @@ app.use("/api/v1/payment", checkSource, paymentRoutes);
 app.use("/api/v1/vendor/transaction", checkSource, vendorTransactionsRoute);
 app.use("/api/v1/transaction-limit", checkSource, transactionLimitRoute);
 
-app.use((error, req, res, next) => {
-  const status = error.statusCode || 500;
-  const message = status == 500 ? "Internal server error" : error.message;
-  const data = error.data;
-  res.status(status).json({ message: message, data: data });
-});
+// app.use((error, req, res, next) => {
+//   const status = error.statusCode || 500;
+//   const message = status == 500 ? "Internal server error" : error.message;
+//   const data = error.data;
+//   res.status(status).json({ message: message, data: data });
+// });
+
+app.use(handleErrors);
 
 const port = process.env.port || 3000;
 

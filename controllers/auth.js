@@ -14,42 +14,87 @@ const PasswordReset = require("../models/passwordreset");
 const OTPManager = require("../services/otpManager");
 const AccountManager = require("../services/accountManager");
 const ValidateInput = require("../utils/validateInputs");
-const Error = require("../utils/errors");
+// const Error = require("../utils/errors");
+// const handleErrors = require("../middlewares/handleErrors");
+const errors = require("../libs/errors/errors");
 
 exports.signup = async (req, res, next) => {
   ValidateInput.validate(req, res, next);
+  let error;
 
   const acceptableUserType = [Constants.CUSTOMER_TYPE, Constants.VENDOR_TYPE];
   const userType = parseInt(req.body.userType);
 
   if (!acceptableUserType.includes(userType)) {
-    return Error.send(400, "Invalid User Type", [], next);
+    error = new errors.UnprocessableEntity(
+      "Invalid User Type",
+      userType,
+      "userType",
+      "body"
+    );
+    next(error);
+    return;
   }
 
   const { email, password, phoneNumber, firstName, lastName } = req.body;
 
+  if (email && !ValidateInput.isEmail(email)) {
+    error = new errors.UnprocessableEntity(
+      "Email is invalid",
+      email,
+      "email",
+      "body"
+    );
+    next(error);
+    return;
+  }
+
+  const isExists = await AccountManager.accountExists(phoneNumber);
+
+  if (isExists) {
+    error = new errors.UnprocessableEntity(
+      "Account already exist",
+      phoneNumber,
+      "phoneNumber",
+      "body"
+    );
+    next(error);
+    return;
+  }
+
   const hashedPassword = await bcrypt.hash(password, 12);
 
-  const createUserResponse = await User.create({
-    email: email,
+  const userObj = {
+    email: email ? email : null,
     uuid: uuid(),
     password: hashedPassword,
     phoneNumber: phoneNumber,
     userType: userType,
-  });
+  };
 
-  const profile = await Profile.create({
+  let newUser;
+
+  try {
+    newUser = await AccountManager.addUser(userObj);
+  } catch (error) {
+    console.log(error.errors[0].ValidationErrorItem);
+    throw new errors.GeneralError();
+  }
+
+  let profileObj = {
     firstName: firstName,
     lastName: lastName,
-    userId: createUserResponse.dataValues.id,
-  });
+    userId: newUser.dataValues.id,
+  };
+
+  const profile = await AccountManager.addProfile(profileObj);
 
   const data = {};
   data.statusCode = 201;
   data.message = "Account created successfully";
   data.data = {
-    id: createUserResponse.dataValues.id,
-    uuid: createUserResponse.dataValues.uuid,
+    id: newUser.dataValues.id,
+    uuid: newUser.dataValues.uuid,
   };
 
   res.status(201).json(data);

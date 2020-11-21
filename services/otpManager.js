@@ -21,9 +21,16 @@ exports.send = async (phoneNumber, action) => {
       action,
       status
     );
+    return log;
   } catch (error) {
     console.log(error);
   }
+};
+
+exports.resend = async (tokenId, phoneNumber, actionType) => {
+  try {
+    const foundToken = await this.getToken(tokenId, phoneNumber);
+  } catch (error) {}
 };
 
 exports.getToken = async (id, phoneNumber) => {

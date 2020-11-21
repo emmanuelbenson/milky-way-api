@@ -9,12 +9,61 @@ exports.send = async (req, res, next) => {
   ValidateInputs.validate(req, res, next);
 };
 
+exports.getActionTypes = async (req, res, next) => {
+  const actionTypes = [config.otpactiontypes];
+  res.status(200).json(actionTypes);
+};
+
+exports.resend = async (req, res, next) => {
+  ValidateInputs.validate(req, res, next);
+
+  const { tokenId, phoneNumber, otpAction } = req.body;
+
+  // Check token in db
+  let foundToken;
+
+  try {
+    foundToken = await OTPManager.getToken(tokenId, phoneNumber);
+    if (!foundToken) {
+      next(new Errors.NotFound("Token ID not found", token, "token", "body"));
+      return;
+    }
+
+    foundToken = foundToken.dataValues;
+
+    if (
+      foundToken.action !== otpAction ||
+      foundToken.status === Status.APPROVED
+    ) {
+      next(new Errors.Forbidden("Cannot resend OTP"));
+      return;
+    }
+  } catch (error) {
+    next(new Errors.GeneralError());
+    return;
+  }
+
+  try {
+    const data = await OTPManager.send(phoneNumber, otpAction);
+    res.status(Status.OK).json({
+      status: Status.SUCCESS,
+      data: {
+        tokenId: data.id,
+        status: data.status,
+      },
+    });
+  } catch (error) {
+    console.log(error);
+    next(Errors.GeneralError());
+  }
+};
+
 exports.very = async (req, res, next) => {
   ValidateInputs.validate(req, res, next);
   const { tokenId, phoneNumber, token } = req.body;
 
   // Check token in db
-  let foundToken = false;
+  let foundToken;
 
   try {
     foundToken = await OTPManager.getToken(tokenId, phoneNumber);

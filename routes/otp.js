@@ -5,10 +5,31 @@ const { body } = require("express-validator");
 
 const controller = require("../controllers/otp");
 
+router.get("/action-types", controller.getActionTypes);
+
 router.post(
   "/send",
   [body("phoneNumber").not().isEmpty().withMessage("rating required")],
   controller.send
+);
+
+router.post(
+  "/resend",
+  [
+    body("phoneNumber")
+      .not()
+      .isEmpty()
+      .withMessage("Phone Number is required")
+      .trim()
+      .escape(),
+    body("tokenId")
+      .not()
+      .isEmpty()
+      .withMessage("Token Id is required")
+      .trim()
+      .escape(),
+  ],
+  controller.resend
 );
 
 router.post(

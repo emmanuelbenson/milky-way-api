@@ -27,12 +27,6 @@ exports.send = async (phoneNumber, action) => {
   }
 };
 
-exports.resend = async (tokenId, phoneNumber, actionType) => {
-  try {
-    const foundToken = await this.getToken(tokenId, phoneNumber);
-  } catch (error) {}
-};
-
 exports.getToken = async (id, phoneNumber) => {
   //check if token exist
   let foundToken;

@@ -7,3 +7,7 @@ exports.validate = (req, res, next) => {
     SendError.send(422, "Validation fields", errors, next);
   }
 };
+
+exports.isEmail = (email) => {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+};

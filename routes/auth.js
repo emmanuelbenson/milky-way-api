@@ -15,17 +15,8 @@ const PasswordReset = require("../models/passwordreset");
 router.post(
   "/signup",
   [
-    body("email")
-      .isEmail()
-      .withMessage("email is required")
-      .custom((value, { req }) => {
-        return User.findOne({ where: { email: value } }).then((userDoc) => {
-          if (userDoc) return Promise.reject("E-mail address already taken");
-        });
-      })
-      .normalizeEmail(),
     body("password").trim().isLength({ min: 8 }),
-    body("phoneNumber").trim().isLength({ min: 11 }),
+    body("phoneNumber").trim().isLength({ min: 7, max: 11 }),
     body("userType").not().isEmpty().trim().escape(),
     body("firstName").not().isEmpty().trim().escape(),
     body("lastName").not().isEmpty().trim().escape(),
@@ -36,7 +27,12 @@ router.post(
 router.post(
   "/signin",
   [
-    body("email").not().isEmpty().trim().escape(),
+    body("phoneNumber")
+      .not()
+      .isEmpty()
+      .trim()
+      .isLength({ min: 7, max: 11 })
+      .escape(),
     body("password").not().isEmpty().trim().escape(),
   ],
   authController.signin

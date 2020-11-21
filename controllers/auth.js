@@ -8,14 +8,11 @@ const moment = require("moment");
 const Status = require("../constants/status");
 const Constants = require("../constants/Constants");
 
-const User = require("../models/user");
-const Profile = require("../models/profile");
+const config = require("../config/config.json");
 const PasswordReset = require("../models/passwordreset");
 const OTPManager = require("../services/otpManager");
 const AccountManager = require("../services/accountManager");
 const ValidateInput = require("../utils/validateInputs");
-// const Error = require("../utils/errors");
-// const handleErrors = require("../middlewares/handleErrors");
 const errors = require("../libs/errors/errors");
 
 exports.signup = async (req, res, next) => {
@@ -46,7 +43,15 @@ exports.signup = async (req, res, next) => {
     return;
   }
 
-  const isExists = await AccountManager.accountExists(phoneNumber);
+  let isExists;
+
+  try {
+    isExists = await AccountManager.accountExists(phoneNumber);
+  } catch (error) {
+    console.log(error);
+    next(new errors.GeneralError());
+    return;
+  }
 
   if (isExists) {
     next(
@@ -95,6 +100,10 @@ exports.signup = async (req, res, next) => {
     id: newUser.dataValues.id,
     uuid: newUser.dataValues.uuid,
   };
+
+  const OTP_ACTION = Constants.OTP_ACTION_ACTIVATE_ACCOUNT;
+
+  await OTPManager.send(newUser.dataValues.phoneNumber, OTP_ACTION);
 
   res.status(201).json(data);
 };

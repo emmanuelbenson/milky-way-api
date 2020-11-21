@@ -1,3 +1,4 @@
+
 {
   "local": {
     "username": "root",
@@ -44,5 +45,19 @@
         "BANK_TRANSFER": "banktransfer"
       }
     }
+  },
+  "otpchannel": {
+    "providers": {
+      "twilio": {
+        "name": "twilio",
+        "channel": "sms"
+      }
+    }
+  },
+  "otpactiontypes": {
+    "ACTIVATE_ACCOUNT": "activate_account"
+  },
+  "phonecode": {
+    "NGN": "+234"
   }
 }

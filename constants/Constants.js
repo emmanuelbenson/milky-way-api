@@ -22,4 +22,5 @@ module.exports = {
   TRANSACTION_LIMIT_YEARLY: "yearly",
   ACCOUNT_ACTIVATED: 1,
   ACCOUNT_DEACTIVATED: 0,
+  OTP_ACTION_ACTIVATE_ACCOUNT: "activate_account",
 };

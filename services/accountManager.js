@@ -21,7 +21,7 @@ exports.accountExists = async (phoneNumber = null) => {
     if (user) return true;
     return false;
   } catch (error) {
-    throw new GeneralError();
+    throw error;
   }
 };
 
@@ -105,38 +105,24 @@ exports.find = async (id) => {
   return user;
 };
 
-exports.toggleAccountActivation = async (uuid, action) => {
-  let foundAccount;
+exports.activate = async (phoneNumber) => {
   try {
-    foundAccount = await User.findOne({ where: { uuid: uuid } });
-
-    if (foundAccount === null) {
-      const error = new Error(`User with uuid ${uuid} was not found`);
-      error.statusCode = 404;
-      error.data = foundAccount;
-      throw error;
-    } else {
-      try {
-        const activated = await User.update(
-          { activated: action },
-          { where: { uuid: uuid } }
-        );
-        if (activated) {
-          return activated[0];
-        }
-      } catch (err) {
-        throw err;
-      }
+    const activated = await User.update(
+      { activated: true },
+      { where: { phoneNumber } }
+    );
+    if (activated) {
+      return activated[0];
     }
   } catch (err) {
     throw err;
   }
 };
 
-exports.update = async (email, fields = {}) => {
+exports.update = async (phoneNumber, fields = {}) => {
   try {
     await User.update(fields, {
-      where: { email: email },
+      where: { phoneNumber },
     });
   } catch (err) {
     throw err;

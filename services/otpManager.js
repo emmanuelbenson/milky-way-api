@@ -1,86 +1,90 @@
-const OTP = require("../models/otp");
+const OTP = require("../libs/modules/twilio/otp");
+const OTPLog = require("../models/otp_logs");
+const config = require("../config/config.json");
 const { Op } = require("sequelize");
-const sequelize = require("../utils/database");
-const crypto = require("crypto");
-const Generate = require("../utils/generate");
-const moment = require("moment");
-const TimestampExpiration = require("../utils/timestampExpiration");
+const Errors = require("../libs/errors/errors");
 
-exports.generate = async () => {
-  let otp;
-  let requestId;
+const CHANNEL = config.otpchannel.providers.twilio.channel;
+const PROVIDER = config.otpchannel.providers.twilio.name;
 
-  const buf = crypto.randomBytes(32);
+exports.send = async (phoneNumber, action) => {
+  let log;
+  try {
+    let OTPCreateResponse = await OTP.send(phoneNumber, CHANNEL, PROVIDER);
+    let status = OTPCreateResponse.status;
 
-  requestId = buf.toString("hex");
-
-  otp = Generate.otp();
-
-  const response = await OTP.create({
-    requestId: requestId,
-    otp: otp,
-    expiresIn: moment().add(1, "h"),
-  });
-
-  return response.dataValues.requestId;
+    OTPCreateResponse = JSON.stringify(OTPCreateResponse);
+    log = await logCreate(
+      phoneNumber,
+      OTPCreateResponse,
+      PROVIDER,
+      action,
+      status
+    );
+  } catch (error) {
+    console.log(error);
+  }
 };
 
-exports.verify = async (otp, requestId) => {
-  let foundOtp, expired, error;
+exports.getToken = async (id, phoneNumber) => {
+  //check if token exist
+  let foundToken;
 
   try {
-    foundOtp = await OTP.findOne({
-      where: {
-        [Op.and]: [{ otp: otp }, { requestId: requestId }],
-      },
+    foundToken = await OTPLog.findOne({
+      where: { [Op.and]: [{ id }, { phoneNumber }] },
     });
-  } catch (err) {
-    console.log(err);
-  }
-
-  if (!foundOtp) {
-    error = new Error("OTP not found");
-    error.statusCode = 404;
-    error.data = [
-      {
-        value: "OTP",
-        msg: "OTP was not found",
-        param: "otp",
-        location: "body",
-      },
-    ];
+    return foundToken;
+  } catch (error) {
+    console.log(error);
     throw error;
   }
-
-  if (foundOtp.dataValues.used) {
-    error = new Error("OTP used");
-    error.statusCode = 422;
-    error.data = [
-      {
-        value: "OTP",
-        msg: "OTP have been used",
-        param: "otp",
-        location: "body",
-      },
-    ];
-
-    throw error;
-  }
-
-  if (TimestampExpiration.check(foundOtp.dataValues.expiresIn)) {
-    error = new Error("OTP expired");
-    error.statusCode = 422;
-    error.data = [
-      {
-        value: "OTP",
-        msg: "OTP has expired",
-        param: "otp",
-        location: "body",
-      },
-    ];
-
-    throw error;
-  }
-
-  return true;
 };
+
+exports.verify = async (id, phoneNumber, token) => {
+  //verify token
+  try {
+    let OTPVerifyResponse = await OTP.verify(phoneNumber, token);
+    let status = OTPVerifyResponse.status;
+
+    OTPVerifyResponse = JSON.stringify(OTPVerifyResponse);
+
+    await logVerify(phoneNumber, OTPVerifyResponse, status);
+
+    const verifyPayload = await this.getToken(id, phoneNumber);
+    return verifyPayload;
+  } catch (error) {
+    throw error;
+  }
+};
+
+async function logCreate(
+  phoneNumber,
+  createResponse = "",
+  provider = "",
+  action = "",
+  status = "pending"
+) {
+  let log;
+  try {
+    log = await OTPLog.create({
+      phoneNumber: phoneNumber,
+      createResponse: createResponse,
+      verifyResponse: null,
+      provider: provider,
+      action: action,
+      status: status,
+    });
+    return log;
+  } catch (error) {
+    console.log(error);
+  }
+}
+
+async function logVerify(phoneNumber, verifyResponse, status = "pending") {
+  try {
+    await OTPLog.update({ verifyResponse, status }, { where: { phoneNumber } });
+  } catch (error) {
+    throw error;
+  }
+}

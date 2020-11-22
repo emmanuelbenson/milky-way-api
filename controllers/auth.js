@@ -103,7 +103,13 @@ exports.signup = async (req, res, next) => {
 
   const OTP_ACTION = Constants.OTP_ACTION_ACTIVATE_ACCOUNT;
 
-  await OTPManager.send(newUser.dataValues.phoneNumber, OTP_ACTION);
+  const OTPData = await OTPManager.send(
+    newUser.dataValues.phoneNumber,
+    OTP_ACTION
+  );
+
+  data.data.tokenId = OTPData.id;
+  data.data.phoneNumber = phoneNumber;
 
   res.status(201).json(data);
 };

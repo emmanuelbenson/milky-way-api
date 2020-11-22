@@ -1,12 +1,15 @@
 require("dotenv").config();
 const Constants = require("../constants/Constants");
+const Errors = require("../libs/errors/errors");
 
 module.exports = (req, res, next) => {
   if (!req.headers.source) {
-    const error = new Error("Access denied!");
-    error.statusCode = 400;
-    error.message = "Request source not specified";
-    throw error;
+    throw new Errors.BadRequest(
+      "Access denied! Request resource not specified",
+      req.headers.source,
+      "resource",
+      "header"
+    );
   }
 
   const requestSource = req.headers.source;
@@ -14,8 +17,11 @@ module.exports = (req, res, next) => {
   if (requestSource === Constants.MOBILE || requestSource === Constants.WEB) {
     next();
   } else {
-    const error = new Error("Access denied!");
-    error.statusCode = 400;
-    throw error;
+    throw new Errors.BadRequest(
+      "Access denied! Request resource not specified",
+      req.headers.source,
+      "resource",
+      "header"
+    );
   }
 };

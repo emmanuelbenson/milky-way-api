@@ -1,17 +1,17 @@
 require("dotenv").config();
 
 // const { database } = require("../config/config");
-const config = require("../config/config.json");
+const config = require("../config/database");
 const { Sequelize } = require("sequelize");
 
 const sequelize = new Sequelize(
-  config.local.database,
-  config.local.username,
-  config.local.password,
+  process.env.DB_NAME,
+  process.env.DB_USERNAME,
+  process.env.DB_PASSWORD,
   {
-    host: config.local.host,
-    port: config.local.port,
-    dialect: config.local.dialect,
+    host: process.env.DB_HOST,
+    port: process.env.DB_PORT,
+    dialect: process.env.DB_DIALECT,
   }
 );
 

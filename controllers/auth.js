@@ -8,7 +8,6 @@ const moment = require("moment");
 const Status = require("../constants/status");
 const Constants = require("../constants/Constants");
 
-const config = require("../config/config.json");
 const PasswordReset = require("../models/passwordreset");
 const OTPManager = require("../services/otpManager");
 const AccountManager = require("../services/accountManager");
@@ -24,12 +23,7 @@ exports.signup = async (req, res, next) => {
 
   if (!acceptableUserType.includes(userType)) {
     next(
-      new errors.UnprocessableEntity(
-        "Invalid User Type",
-        userType,
-        "userType",
-        "body"
-      )
+      new errors.UnprocessableEntity(ValidateInput.parseError(userType, "Invalid User Type", "userType", "body"))
     );
     return;
   }
@@ -37,9 +31,7 @@ exports.signup = async (req, res, next) => {
   const { email, password, phoneNumber, firstName, lastName } = req.body;
 
   if (email && !ValidateInput.isEmail(email)) {
-    next(
-      new errors.UnprocessableEntity("Email is invalid", email, "email", "body")
-    );
+    next(new errors.UnprocessableEntity( ValidateInput.parseError(email, 'Email is invalid', 'email', 'body') ));
     return;
   }
 
@@ -54,13 +46,12 @@ exports.signup = async (req, res, next) => {
   }
 
   if (isExists) {
-    next(
-      new errors.UnprocessableEntity(
-        "Account already exist",
-        phoneNumber,
-        "phoneNumber",
-        "body"
-      )
+    next(new errors.UnprocessableEntity(
+        ValidateInput.parseError(
+            phoneNumber,
+            "Account already exist",
+            "phoneNumber",
+            "body"))
     );
     return;
   }

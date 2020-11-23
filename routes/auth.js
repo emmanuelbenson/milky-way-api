@@ -15,8 +15,8 @@ const PasswordReset = require("../models/passwordreset");
 router.post(
   "/signup",
   [
-    body("password").trim().isLength({ min: 8 }),
-    body("phoneNumber").trim().isLength({ min: 7, max: 11 }),
+    body("password").trim().isLength({ min: 8 }).withMessage('Password must be at least 8 characters long'),
+    body("phoneNumber").trim().isLength({ min: 7, max: 11 }).withMessage('Phone Number must be 7 or 11 characters long'),
     body("userType").not().isEmpty().trim().escape(),
     body("firstName").not().isEmpty().trim().escape(),
     body("lastName").not().isEmpty().trim().escape(),

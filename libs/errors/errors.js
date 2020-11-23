@@ -7,7 +7,7 @@ class GeneralError extends Error {
   ) {
     super();
     this.message = message;
-    this.data = value && param && location && [{ value, param, location }];
+    this.data = value && param && location && [{ value, msg: message, param, location }];
   }
 
   getCode() {

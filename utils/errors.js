@@ -8,3 +8,7 @@ exports.send = (statusCode = 500, message, data = [], next) => {
   delete error.data.sql;
   next(error);
 };
+
+exports.parse = (value, msg, param, location) => {
+  return [{value: value, msg: msg, param: param, location: location}];
+}

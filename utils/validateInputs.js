@@ -8,10 +8,6 @@ exports.validate = (req, res, next) => {
   }
 };
 
-exports.parseError = (value, msg, param, location) => {
-  return [{value: value, msg: msg, param: param, location: location}];
-}
-
 exports.isEmail = (email) => {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 };

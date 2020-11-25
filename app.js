@@ -40,16 +40,6 @@ app.use(useragent.express());
 
 app.use(cors());
 
-// app.use((req, res, next) => {
-//   res.setHeader("Access-Control-Allow-Origin", "*");
-//   res.setHeader(
-//     "Access-Control-Allow-Methods",
-//     "GET, POST, PUT, PATCH, DELETE"
-//   );
-//   res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
-//   next();
-// });
-
 app.use("/api/v1/auth", checkSource, authRoutes);
 app.use("/api/v1/admin", checkSource, adminRoutes);
 app.use("/api/v1/address", checkSource, addressRoutes);
@@ -64,15 +54,8 @@ app.use("/api/v1/vendor/transaction", checkSource, vendorTransactionsRoute);
 app.use("/api/v1/transaction-limit", checkSource, transactionLimitRoute);
 app.use("/api/v1/otp", checkSource, otpRoute);
 
-// app.use((error, req, res, next) => {
-//   const status = error.statusCode || 500;
-//   const message = status == 500 ? "Internal server error" : error.message;
-//   const data = error.data;
-//   res.status(status).json({ message: message, data: data });
-// });
-
 app.use(handleErrors);
 
-const port = process.env.port || 3000;
+const port = process.env.NODE_ENV_PORT || 5000;
 
 app.listen(port);

@@ -18,8 +18,8 @@ exports.accountExists = async (phoneNumber = null) => {
 
   try {
     user = await User.findOne({ attributes: ["id"], where: { phoneNumber } });
-    if (user) return true;
-    return false;
+    return !!user;
+
   } catch (error) {
     throw error;
   }
@@ -29,10 +29,8 @@ exports.isVerified = async (phoneNumber = null) => {
   try {
     const user = await this.findByPhoneNumber(phoneNumber);
 
-    if (user.dataValues.activated === Constants.ACCOUNT_ACTIVATED) {
-      return true;
-    }
-    return false;
+    return user.dataValues.activated === Constants.ACCOUNT_ACTIVATED;
+
   } catch (error) {
     throw error;
   }

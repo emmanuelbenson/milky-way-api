@@ -27,12 +27,10 @@ router.post(
 router.post(
   "/signin",
   [
-    body("phoneNumber")
-      .not()
-      .isEmpty()
-      .trim()
-      .isLength({ min: 7, max: 11 })
-      .escape(),
+      body("phoneNumber").trim()
+          .isLength({ min: 7, max: 11 })
+          .withMessage('Phone Number must be 7 or 11 characters long')
+          .escape(),
     body("password").not().isEmpty().trim().escape(),
   ],
   authController.signin

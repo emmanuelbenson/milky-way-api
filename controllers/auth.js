@@ -12,7 +12,8 @@ const PasswordReset = require("../models/passwordreset");
 const OTPManager = require("../services/otpManager");
 const AccountManager = require("../services/accountManager");
 const ValidateInput = require("../utils/validateInputs");
-const errors = require("../libs/errors/errors");
+const Errors = require("../libs/errors/errors");
+const UtilError = require('../utils/errors');
 
 exports.signup = async (req, res, next) => {
   ValidateInput.validate(req, res, next);
@@ -23,7 +24,7 @@ exports.signup = async (req, res, next) => {
 
   if (!acceptableUserType.includes(userType)) {
     next(
-      new errors.UnprocessableEntity(ValidateInput.parseError(userType, "Invalid User Type", "userType", "body"))
+      new Errors.UnprocessableEntity(UtilError.parse(userType, "Invalid User Type", "userType", "body"))
     );
     return;
   }
@@ -31,7 +32,7 @@ exports.signup = async (req, res, next) => {
   const { email, password, phoneNumber, firstName, lastName } = req.body;
 
   if (email && !ValidateInput.isEmail(email)) {
-    next(new errors.UnprocessableEntity( ValidateInput.parseError(email, 'Email is invalid', 'email', 'body') ));
+    next(new Errors.UnprocessableEntity( UtilError.parse(email, 'Email is invalid', 'email', 'body') ));
     return;
   }
 
@@ -41,13 +42,13 @@ exports.signup = async (req, res, next) => {
     isExists = await AccountManager.accountExists(phoneNumber);
   } catch (error) {
     console.log(error);
-    next(new errors.GeneralError());
+    next(new Errors.GeneralError());
     return;
   }
 
   if (isExists) {
-    next(new errors.UnprocessableEntity(
-        ValidateInput.parseError(
+    next(new Errors.UnprocessableEntity(
+        UtilError.parse(
             phoneNumber,
             "Account already exist",
             "phoneNumber",
@@ -72,7 +73,7 @@ exports.signup = async (req, res, next) => {
     newUser = await AccountManager.addUser(userObj);
   } catch (error) {
     console.log(error);
-    next(new errors.GeneralError());
+    next(new Errors.GeneralError());
     return;
   }
 
@@ -117,12 +118,17 @@ exports.signin = async (req, res, next) => {
     foundUser = await AccountManager.findByPhoneNumber(phoneNumber);
   } catch (error) {
     console.log(error);
-    next(new errors.GeneralError());
+    next(new Errors.GeneralError());
     return;
   }
 
   if (!foundUser) {
-    next(new errors.NotFound("These credentials do not match our records"));
+    next(new Errors.NotFound(
+        UtilError.parse(
+            "",
+            "These credentials do not match our records",
+            "",
+            "")));
     return;
   }
 
@@ -134,20 +140,39 @@ exports.signin = async (req, res, next) => {
     hashedPassword = await bcrypt.compare(password, user.password);
   } catch (error) {
     console.log(error);
-    next(new errors.GeneralError());
+    next(new Errors.GeneralError());
     return;
   }
 
   if (!hashedPassword) {
-    next(new errors.NotFound("These credentials do not match our records"));
+    next(new Errors.NotFound(
+        UtilError.parse(
+            "",
+            "These credentials do not match our records",
+            "",
+            "")
+        )
+    );
     return;
   }
 
   const isVerified = await AccountManager.isVerified(user.phoneNumber);
 
   if (!isVerified) {
-    next(new errors.Unauthorized("Unverified account"));
-    return;
+    const OTP_ACTION = Constants.OTP_ACTION_ACTIVATE_ACCOUNT;
+
+    const OTPData = await OTPManager.send(
+        phoneNumber,
+        OTP_ACTION
+    );
+
+    const data = {
+      tokenId: OTPData.id,
+      phoneNumber: phoneNumber,
+      message: "Your account have not been verified"
+    }
+
+    res.status(401).json(data);
   }
 
   let token;
@@ -162,7 +187,7 @@ exports.signin = async (req, res, next) => {
     );
   } catch (err) {
     console.log(err);
-    next(new errors.GeneralError());
+    next(new Errors.GeneralError());
     return;
   }
 
@@ -182,7 +207,7 @@ exports.resetPassword = async (req, res, next) => {
   crypto.randomBytes(32, (err, buffer) => {
     if (err !== null) {
       console.log(err);
-      next(errors.GeneralError());
+      next(new Errors.GeneralError());
       return;
     }
 

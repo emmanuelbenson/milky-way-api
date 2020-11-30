@@ -159,12 +159,20 @@ exports.signin = async (req, res, next) => {
   const isVerified = await AccountManager.isVerified(user.phoneNumber);
 
   if (!isVerified) {
-    next(
-        new Errors.Unauthorized(
-            UtilError.parse(phoneNumber, "Your account have not been verified", "phoneNumber", "body")
-        )
+    const OTP_ACTION = Constants.OTP_ACTION_ACTIVATE_ACCOUNT;
+
+    const OTPData = await OTPManager.send(
+        phoneNumber,
+        OTP_ACTION
     );
-    return;
+
+    const data = {
+      tokenId: OTPData.id,
+      phoneNumber: phoneNumber,
+      message: "Your account have not been verified"
+    }
+
+    res.status(401).json(data);
   }
 
   let token;

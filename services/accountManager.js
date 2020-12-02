@@ -1,6 +1,5 @@
 const Constants = require("../constants/Constants");
-const Status = require("../constants/status");
-const { GeneralError } = require("../libs/errors/errors");
+require("../constants/status");
 const Profile = require("../models/profile");
 const User = require("../models/user");
 
@@ -128,3 +127,12 @@ exports.update = async (phoneNumber, fields = {}) => {
 
   return true;
 };
+
+exports.delete = async (userId) => {
+  try {
+    await User.destroy( { where: { id: userId } } );
+    await Profile.destroy({ where: { userId }});
+  } catch (e) {
+    throw e;
+  }
+}

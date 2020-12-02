@@ -11,7 +11,7 @@ module.exports = {
         primaryKey: true,
         type: Sequelize.INTEGER,
       },
-      email: {
+      phoneNumber: {
         type: Sequelize.STRING,
         allowNull: false,
       },

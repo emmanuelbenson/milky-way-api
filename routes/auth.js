@@ -39,19 +39,12 @@ router.post(
 router.post(
   "/reset-password",
   [
-    body("email")
+    body("phoneNumber")
       .not()
       .isEmpty()
-      .isEmail()
-      .withMessage("email is required")
+      .withMessage("phoneNumber is required")
       .trim()
-      .escape()
-      .custom((value, { req }) => {
-        return User.findOne({ where: { email: value } }).then((userDoc) => {
-          if (!userDoc) return Promise.reject("We do not have such record");
-        });
-      })
-      .normalizeEmail(),
+      .escape(),
   ],
   authController.resetPassword
 );

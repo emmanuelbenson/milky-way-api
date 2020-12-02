@@ -7,7 +7,7 @@ const Status = require("../constants/status");
 class PasswordReset extends Model {}
 PasswordReset.init(
   {
-    email: {
+    phoneNumber: {
       type: Sequelize.STRING,
       allowNull: false,
     },

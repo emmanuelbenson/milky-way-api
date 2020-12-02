@@ -24,6 +24,7 @@ exports.send = async (phoneNumber, action) => {
     return log;
   } catch (error) {
     console.log(error);
+    throw error;
   }
 };
 
@@ -79,6 +80,7 @@ async function logCreate(
     return log;
   } catch (error) {
     console.log(error);
+    throw error;
   }
 }
 
@@ -86,6 +88,7 @@ async function logVerify(phoneNumber, verifyResponse, status = "pending") {
   try {
     await OTPLog.update({ verifyResponse, status }, { where: { phoneNumber } });
   } catch (error) {
+    console.log(error);
     throw error;
   }
 }

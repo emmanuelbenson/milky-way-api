@@ -95,10 +95,30 @@ exports.signup = async (req, res, next) => {
 
   const OTP_ACTION = Constants.OTP_ACTION_ACTIVATE_ACCOUNT;
 
-  const OTPData = await OTPManager.send(
-    newUser.dataValues.phoneNumber,
-    OTP_ACTION
-  );
+  let OTPData;
+
+  try {
+    OTPData = await OTPManager.send(
+        newUser.dataValues.phoneNumber,
+        OTP_ACTION
+    );
+  } catch (e) {
+    if(e.status === 400) {
+      await AccountManager.delete(newUser.dataValues.id);
+    }
+    console.log(e);
+    next(
+        new Errors.UnprocessableEntity(
+            UtilError.parse(
+                phoneNumber,
+                "We could not verify your phone number. Please, check it and try again",
+                "phoneNumber",
+                "body"
+            )
+        )
+    );
+    return;
+  }
 
   data.data.tokenId = OTPData.id;
   data.data.phoneNumber = phoneNumber;
@@ -203,33 +223,45 @@ exports.signin = async (req, res, next) => {
 exports.resetPassword = async (req, res, next) => {
   ValidateInput.validate(req, res, next);
 
-  const { email } = req.body;
-  crypto.randomBytes(32, (err, buffer) => {
-    if (err !== null) {
-      console.log(err);
-      next(new Errors.GeneralError());
-      return;
-    }
+  const { phoneNumber } = req.body;
+  let token;
+  try {
+    const cryptoBuff = crypto.randomBytes(32);
+    token = cryptoBuff.toString('hex');
+  } catch (error) {
+    console.log(error);
+    next(new Errors.GeneralError());
+    return;
+  }
 
-    const token = buffer.toString("hex");
-    PasswordReset.create({
-      email: email,
-      token: token,
-      expiresIn: moment().add(2, "h"), // Expires in 1hr or 2hrs in daylight saving
-      status: Status.UNEXPIRED,
+  try {
+    await PasswordReset.create({
+      phoneNumber,
+      token,
+      expiresIn: moment().add(2, 'h'),
+      status: Status.UNEXPIRED
     })
-      .then(() => {
-        // Send email
-        const data = {};
-        data.message = `Password reset link sent to ${email}`;
-        data.status = "success";
-        res.status(200).json(data);
-      })
-      .catch((err) => {
-        console.log(err);
-        return Error.send(500, "Internal server error", [], next);
-      });
-  });
+  } catch (error) {
+    console.log(error);
+    next(new Errors.GeneralError())
+    return;
+  }
+
+  let OTPLog;
+  try {
+    OTPLog = await OTPManager.send(phoneNumber, Constants.OTP_ACTION_PASSWORD_RESET);
+  } catch(error) {
+    console.log(error);
+    next(new Errors.GeneralError());
+  }
+
+  const data = {};
+  data.phoneNumber = phoneNumber;
+  data.tokenId = OTPLog.id;
+  data.message = `OTP token have been sent to your registered phone number`;
+  data.status = "success";
+
+  res.status(200).json(data);
 };
 
 exports.passwordReset = async (req, res, next) => {

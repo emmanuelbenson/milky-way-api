@@ -23,4 +23,5 @@ module.exports = {
   ACCOUNT_ACTIVATED: 1,
   ACCOUNT_DEACTIVATED: 0,
   OTP_ACTION_ACTIVATE_ACCOUNT: "activate_account",
+  OTP_ACTION_PASSWORD_RESET: "password_reset",
 };

@@ -1,9 +1,8 @@
 require("dotenv").config();
-
+const Config = require('../config/config.json');
 const bcrypt = require("bcryptjs");
 const { uuid } = require("uuidv4");
 const jwt = require("jsonwebtoken");
-const crypto = require("crypto");
 const moment = require("moment");
 const Status = require("../constants/status");
 const Constants = require("../constants/Constants");
@@ -11,6 +10,7 @@ const Constants = require("../constants/Constants");
 const PasswordReset = require("../models/passwordreset");
 const OTPManager = require("../services/otpManager");
 const AccountManager = require("../services/accountManager");
+const PasswordManager = require('../services/passwordManager');
 const ValidateInput = require("../utils/validateInputs");
 const Errors = require("../libs/errors/errors");
 const UtilError = require('../utils/errors');
@@ -111,7 +111,7 @@ exports.signup = async (req, res, next) => {
         new Errors.UnprocessableEntity(
             UtilError.parse(
                 phoneNumber,
-                "We could not verify your phone number. Please, check it and try again",
+                "We could not verify your phone number. Please, check and try again",
                 "phoneNumber",
                 "body"
             )
@@ -224,44 +224,66 @@ exports.resetPassword = async (req, res, next) => {
   ValidateInput.validate(req, res, next);
 
   const { phoneNumber } = req.body;
-  let token;
+  let foundAccount;
   try {
-    const cryptoBuff = crypto.randomBytes(32);
-    token = cryptoBuff.toString('hex');
-  } catch (error) {
-    console.log(error);
+    foundAccount = await AccountManager.accountExists(phoneNumber);
+    if(!foundAccount) {
+      const data = {
+        tokenId: '0001100',
+        phoneNumber: phoneNumber,
+        message: `OTP have been sent to this phone number if it is registered on our system`,
+        status: "success"
+      }
+
+      res.status(200).json(data);
+      return;
+    }
+  }catch (e) {
+    console.log(e);
     next(new Errors.GeneralError());
     return;
   }
 
-  try {
-    await PasswordReset.create({
-      phoneNumber,
-      token,
-      expiresIn: moment().add(2, 'h'),
-      status: Status.UNEXPIRED
-    })
-  } catch (error) {
-    console.log(error);
-    next(new Errors.GeneralError())
-    return;
-  }
-
+  let hasActiveReset;
   let OTPLog;
+
   try {
-    OTPLog = await OTPManager.send(phoneNumber, Constants.OTP_ACTION_PASSWORD_RESET);
-  } catch(error) {
-    console.log(error);
+    hasActiveReset = await PasswordManager.checkReset(phoneNumber);
+  }catch (e) {
+    console.log(e);
     next(new Errors.GeneralError());
+    return;
   }
 
-  const data = {};
-  data.phoneNumber = phoneNumber;
-  data.tokenId = OTPLog.id;
-  data.message = `OTP token have been sent to your registered phone number`;
-  data.status = "success";
+  if(hasActiveReset) {
+    OTPLog = await OTPManager.send(phoneNumber, Config.otpactiontypes.PASSWORD_RESET);
+    const data = {
+      tokenId: OTPLog.id,
+      phoneNumber: phoneNumber,
+      message: `OTP have been sent to this phone number if it is registered on our system`,
+      status: "success"
+    }
 
-  res.status(200).json(data);
+    res.status(200).json(data);
+    return;
+  }
+
+  try {
+    await PasswordManager.initReset(phoneNumber);
+    OTPLog = await OTPManager.send(phoneNumber, Constants.OTP_ACTION_PASSWORD_RESET);
+
+    const data = {
+      phoneNumber: phoneNumber,
+      tokenId: OTPLog.id,
+      message: `OTP have been sent to this phone number if it is registered on our system`,
+      status: "success"
+    };
+
+    res.status(200).json(data);
+  } catch (e) {
+    console.log(e);
+    next(new Errors.GeneralError());
+  }
 };
 
 exports.passwordReset = async (req, res, next) => {

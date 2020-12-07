@@ -4,7 +4,7 @@ const Errors = require("../libs/errors/errors");
 exports.validate = (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
-    next(new Errors.UnprocessableEntity(errors))
+    next(new Errors.UnprocessableEntity(errors));
   }
 };
 

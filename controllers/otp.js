@@ -115,7 +115,7 @@ exports.very = async (req, res, next) => {
           res.status(data.statusCode).json(data);
           break;
         case OTPActionTypes.PASSWORD_RESET:
-          let resetRequest = await PasswordManager.findActiveResetRequest(phoneNumber);
+          let resetRequest = await PasswordManager.findResetRequestByPhoneNumberOrToken(phoneNumber);
           res.status(200).json({ resetToken: resetRequest.dataValues.token });
           break;
         default:

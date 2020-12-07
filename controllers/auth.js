@@ -3,21 +3,22 @@ const Config = require('../config/config.json');
 const bcrypt = require("bcryptjs");
 const { uuid } = require("uuidv4");
 const jwt = require("jsonwebtoken");
-const moment = require("moment");
 const Status = require("../constants/status");
 const Constants = require("../constants/Constants");
 
-const PasswordReset = require("../models/passwordreset");
 const OTPManager = require("../services/otpManager");
 const AccountManager = require("../services/accountManager");
 const PasswordManager = require('../services/passwordManager');
 const ValidateInput = require("../utils/validateInputs");
 const Errors = require("../libs/errors/errors");
 const UtilError = require('../utils/errors');
+const { validationResult } = require('express-validator');
 
 exports.signup = async (req, res, next) => {
-  ValidateInput.validate(req, res, next);
-  let error;
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    next(new Errors.UnprocessableEntity(errors));
+  }
 
   const acceptableUserType = [Constants.CUSTOMER_TYPE, Constants.VENDOR_TYPE];
   const userType = parseInt(req.body.userType);
@@ -57,7 +58,14 @@ exports.signup = async (req, res, next) => {
     return;
   }
 
-  const hashedPassword = await bcrypt.hash(password, 12);
+  let hashedPassword;
+  try {
+    hashedPassword = await PasswordManager.hash(password);
+  }catch (e) {
+    console.log(e);
+    next( new Errors.GeneralError());
+    return;
+  }
 
   const userObj = {
     email: email ? email : null,
@@ -77,13 +85,13 @@ exports.signup = async (req, res, next) => {
     return;
   }
 
-  let profileObj = {
-    firstName: firstName,
-    lastName: lastName,
-    userId: newUser.dataValues.id,
-  };
-
-  const profile = await AccountManager.addProfile(profileObj);
+  await AccountManager.addProfile(
+      {
+        firstName: firstName,
+        lastName: lastName,
+        userId: newUser.dataValues.id,
+      }
+  );
 
   const data = {};
   data.statusCode = 201;
@@ -248,23 +256,23 @@ exports.resetPassword = async (req, res, next) => {
   let OTPLog;
 
   try {
-    hasActiveReset = await PasswordManager.checkReset(phoneNumber);
+    hasActiveReset = await PasswordManager.hasActiveResetRequest(phoneNumber);
+    if(hasActiveReset) {
+      OTPLog = await OTPManager.send(phoneNumber, Config.otpactiontypes.PASSWORD_RESET);
+      const data = {
+        tokenId: OTPLog.id,
+        phoneNumber: phoneNumber,
+        message: `OTP have been sent to this phone number if it is registered on our system`,
+        status: "success"
+      }
+
+      res.status(200).json(data);
+      return;
+    }
+
   }catch (e) {
     console.log(e);
     next(new Errors.GeneralError());
-    return;
-  }
-
-  if(hasActiveReset) {
-    OTPLog = await OTPManager.send(phoneNumber, Config.otpactiontypes.PASSWORD_RESET);
-    const data = {
-      tokenId: OTPLog.id,
-      phoneNumber: phoneNumber,
-      message: `OTP have been sent to this phone number if it is registered on our system`,
-      status: "success"
-    }
-
-    res.status(200).json(data);
     return;
   }
 
@@ -289,63 +297,38 @@ exports.resetPassword = async (req, res, next) => {
 exports.passwordReset = async (req, res, next) => {
   ValidateInput.validate(req, res, next);
 
-  const { email, token, newPassword } = req.body;
+  const { phoneNumber, token, password } = req.body;
 
-  let foundToken, error;
+  let tokenIsExpired;
 
-  foundToken = await PasswordReset.findOne({
-    where: { token: token },
-  });
-
-  if (!foundToken) {
-    const data = [
-      {
-        value: "",
-        msg: "Token not found",
-        param: "token",
-        location: "body",
-      },
-    ];
-
-    return Error.send(500, "Token expired", data, next);
+  try {
+    tokenIsExpired = await PasswordManager.tokenIsExpired(token);
+    if(tokenIsExpired) {
+      next(new Errors.Forbidden(
+          UtilError.parse(
+              token,
+              "Token has expired",
+              "token",
+              "body")));
+      return;
+    }
+  }catch (e) {
+    console.log(e);
+    next( new Errors.GeneralError());
+    return;
   }
 
-  if (foundToken.dataValues.expiresIn < moment()) {
-    const data = [
-      {
-        value: "",
-        msg: "Token expired",
-        param: "token",
-        location: "body",
-      },
-    ];
+  try {
+    const hashedPassword = await PasswordManager.hash(password);
+    await PasswordManager.reset(phoneNumber, token, hashedPassword);
 
-    return Error.send(500, "Token expired", data, next);
+    res.status(200).json({
+      message: "Password was updated successfully",
+    });
+  } catch (e) {
+    console.log(e);
+    next( new Errors.GeneralError());
   }
-
-  const hashedPassword = await bcrypt.hash(newPassword, 12);
-
-  const updateResponse = await AccountManager.update(email, {
-    password: hashedPassword,
-  });
-
-  if (!updateResponse) {
-    return Error.send(
-      500,
-      "Cannot update password at the moment. Please try again later",
-      [],
-      next
-    );
-  }
-
-  await PasswordReset.update(
-    { status: Status.EXPIRED },
-    { where: { token: token } }
-  );
-
-  res.status(200).json({
-    message: "Password was updated successfully",
-  });
 };
 
 exports.toggleAccountState = async (req, res, next) => {

@@ -55,7 +55,8 @@
     }
   },
   "otpactiontypes": {
-    "ACTIVATE_ACCOUNT": "activate_account"
+    "ACTIVATE_ACCOUNT": "activate_account",
+    "PASSWORD_RESET": "password_reset"
   },
   "phonecode": {
     "NGN": "+234"

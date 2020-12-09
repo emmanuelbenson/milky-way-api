@@ -1,6 +1,6 @@
 const Request = require("../models/request");
 const { Op } = require("sequelize");
-const sequelize = require("../utils/database");
+const { uuid } = require("uuidv4");
 
 exports.create = async (
   userId,
@@ -10,11 +10,13 @@ exports.create = async (
   serviceManagerMethodArrayParam
 ) => {
   let createResponse;
+  let uuid = uuid();
 
   try {
     createResponse = await Request.create({
       userId,
       requestId,
+      uuid,
       requestServiceManager,
       requestServiceManagerMethod,
       serviceManagerMethodArrayParam,
@@ -26,7 +28,7 @@ exports.create = async (
   return createResponse.dataValues.requestId;
 };
 
-exports.find = async (requestId) => {
+exports.getRequestByRequestId = async (userId, requestId) => {
   let foundRequest, error;
 
   try {
@@ -37,14 +39,6 @@ exports.find = async (requestId) => {
     });
   } catch (err) {
     throw err;
-  }
-
-  if (!foundRequest) {
-    error = new Error("Request not found");
-    error.statusCode = 404;
-    error.data = [];
-
-    throw error;
   }
 
   return foundRequest.dataValues;

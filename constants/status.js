@@ -26,4 +26,5 @@ module.exports = {
   INTERNAL_SERVER_ERROR: 500,
   FORBIDDEN: 403,
   APPROVED: "approved",
+  INVALID: "invalid",
 };

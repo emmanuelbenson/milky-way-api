@@ -19,6 +19,14 @@ module.exports = {
         type: Sequelize.STRING,
         allowNull: false,
       },
+      token: {
+        type: Sequelize.STRING,
+        allowNull: false,
+      },
+      expiresIn: {
+        type: Sequelize.DATE,
+        allowNull: false,
+      },
       createResponse: {
         type: Sequelize.TEXT,
         allowNull: true,
@@ -29,7 +37,15 @@ module.exports = {
       },
       provider: {
         type: Sequelize.STRING,
+        allowNull: true,
+      },
+      action: {
+        type: Sequelize.STRING,
         allowNull: false,
+      },
+      status: {
+        type: Sequelize.ENUM,
+        values: ["pending", "approved", "expired", "used", "invalid"],
       },
       createdAt: {
         allowNull: false,

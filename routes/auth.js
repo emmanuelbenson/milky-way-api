@@ -1,25 +1,23 @@
 const express = require("express");
 const router = express.Router();
 
-const User = require("../models/user");
 const authController = require("../controllers/auth");
 const IsAuth = require("../middlewares/is-auth");
 const IsAdmin = require("../middlewares/is-admin");
 
 const Status = require("../constants/status");
 const ResponseError = require("../constants/responseErrors");
-
-const { body, validatorResult, check, oneOf } = require("express-validator");
+const { body } = require("express-validator");
 const PasswordReset = require("../models/passwordreset");
 
 router.post(
   "/signup",
   [
-    body("password").trim().isLength({ min: 8 }).withMessage('Password must be at least 8 characters long'),
-    body("phoneNumber").trim().isLength({ min: 7, max: 11 }).withMessage('Phone Number must be 7 or 11 characters long'),
-    body("userType").not().isEmpty().trim().escape(),
-    body("firstName").not().isEmpty().trim().escape(),
-    body("lastName").not().isEmpty().trim().escape(),
+    body("password").not().isEmpty().withMessage("Password is required").trim().escape(),
+    body("phoneNumber").not().isEmpty().withMessage("Phone Number is required").trim().escape(),
+    body("userType").not().isEmpty().withMessage("userType is required").trim().escape(),
+    body("firstName").not().isEmpty().withMessage("First Name is required").trim().escape(),
+    body("lastName").not().isEmpty().withMessage("Last Name is required").trim().escape(),
   ],
   authController.signup
 );
@@ -27,11 +25,8 @@ router.post(
 router.post(
   "/signin",
   [
-      body("phoneNumber").trim()
-          .isLength({ min: 7, max: 11 })
-          .withMessage('Phone Number must be 7 or 11 characters long')
-          .escape(),
-    body("password").not().isEmpty().trim().escape(),
+    body("phoneNumber").not().isEmpty().withMessage('Phone Number is required').trim().escape(),
+    body("password").not().isEmpty().withMessage('Password is required').trim().escape(),
   ],
   authController.signin
 );
@@ -42,7 +37,7 @@ router.post(
     body("phoneNumber")
       .not()
       .isEmpty()
-      .withMessage("phoneNumber is required")
+      .withMessage("Phone Number is required")
       .trim()
       .escape(),
   ],
@@ -52,17 +47,16 @@ router.post(
 router.post(
   "/password-reset",
   [
-    body("email")
-      .isEmail()
+    body("phoneNumber")
       .not()
       .isEmpty()
-      .withMessage("Email is required")
+      .withMessage("Phone Number is required")
       .trim()
       .escape(),
-    body("newPassword")
+    body("password")
       .not()
       .isEmpty()
-      .withMessage("New password is required")
+      .withMessage("Password is required")
       .trim()
       .escape(),
     body("token")
@@ -70,41 +64,9 @@ router.post(
       .isEmpty()
       .withMessage("Invalid request")
       .trim()
-      .escape()
-      .custom((value, { req }) => {
-        return PasswordReset.findOne({ where: { token: value } }).then(
-          (passwordResetDoc) => {
-            if (!passwordResetDoc) {
-              return Promise.reject("Invalid password reset token");
-            } else if (passwordResetDoc.dataValues.status === Status.EXPIRED) {
-              return Promise.reject(ResponseError.TOKEN_EXPIRED);
-            }
-          }
-        );
-      }),
+      .escape(),
   ],
   authController.passwordReset
-);
-
-router.post(
-  "/account/change-state",
-  IsAdmin,
-  IsAuth,
-  [
-    body("uuid")
-      .not()
-      .isEmpty()
-      .withMessage("UUID is required")
-      .trim()
-      .escape(),
-    body("action")
-      .not()
-      .isEmpty()
-      .withMessage("Action is required")
-      .trim()
-      .escape(),
-  ],
-  authController.toggleAccountState
 );
 
 module.exports = router;

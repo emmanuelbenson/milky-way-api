@@ -13,15 +13,33 @@ const OTPLog = sequelize.define("otp_logs", {
     type: Sequelize.STRING,
     allowNull: false,
   },
+  token: {
+    type: Sequelize.STRING,
+    allowNull: false,
+  },
+  expiresIn: {
+    type: Sequelize.DATE,
+    allowNull: false,
+  },
   createResponse: {
     type: Sequelize.TEXT,
+    allowNull: true,
   },
   verifyResponse: {
     type: Sequelize.TEXT,
+    allowNull: true,
   },
   provider: {
     type: Sequelize.STRING,
+    allowNull: true,
+  },
+  action: {
+    type: Sequelize.STRING,
     allowNull: false,
+  },
+  status: {
+    type: Sequelize.ENUM,
+    values: ["pending", "approved", "expired", "used", "invalid"],
   },
   createdAt: {
     allowNull: false,
@@ -30,14 +48,6 @@ const OTPLog = sequelize.define("otp_logs", {
   updatedAt: {
     allowNull: false,
     type: Sequelize.DATE,
-  },
-  action: {
-    allowNull: false,
-    type: Sequelize.STRING,
-  },
-  status: {
-    type: Sequelize.ENUM,
-    values: ["pending", "approved", "expired", "used"],
   },
 });
 

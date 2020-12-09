@@ -3,9 +3,10 @@ const Config = require('../config/config.json');
 const bcrypt = require("bcryptjs");
 const { uuid } = require("uuidv4");
 const jwt = require("jsonwebtoken");
+const moment = require("moment");
+
 const Status = require("../constants/status");
 const Constants = require("../constants/Constants");
-
 const OTPManager = require("../services/otpManager");
 const AccountManager = require("../services/accountManager");
 const PasswordManager = require('../services/passwordManager');
@@ -18,6 +19,7 @@ exports.signup = async (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     next(new Errors.UnprocessableEntity(errors));
+    return;
   }
 
   const acceptableUserType = [Constants.CUSTOMER_TYPE, Constants.VENDOR_TYPE];
@@ -103,39 +105,44 @@ exports.signup = async (req, res, next) => {
 
   const OTP_ACTION = Constants.OTP_ACTION_ACTIVATE_ACCOUNT;
 
-  let OTPData;
+  const otpToken = OTPManager.generateToken();
+
+  const message = OTPManager.constructActivationMessage(otpToken);
+
+  let  sendOTPResponse;
 
   try {
-    OTPData = await OTPManager.send(
-        newUser.dataValues.phoneNumber,
-        OTP_ACTION
-    );
-  } catch (e) {
-    if(e.status === 400) {
-      await AccountManager.delete(newUser.dataValues.id);
-    }
-    console.log(e);
-    next(
-        new Errors.UnprocessableEntity(
-            UtilError.parse(
-                phoneNumber,
-                "We could not verify your phone number. Please, check and try again",
-                "phoneNumber",
-                "body"
-            )
-        )
-    );
-    return;
+    sendOTPResponse = await OTPManager.sendOTP(message, phoneNumber);
+  }catch (e) {
+    console.log(e)
   }
 
-  data.data.tokenId = OTPData.id;
+  const expiresIn = await moment().add(2, 'h').format();
+
+  await OTPManager.log(
+      phoneNumber,
+      otpToken,
+      expiresIn,
+      JSON.stringify(sendOTPResponse),
+      null,
+      OTP_ACTION,
+      Status.PENDING
+  );
+
+  data.data.tokenId = uuid();
   data.data.phoneNumber = phoneNumber;
+  data.data.otpToken = otpToken;
 
   res.status(201).json(data);
 };
 
 exports.signin = async (req, res, next) => {
-  ValidateInput.validate(req, res, next);
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    next(new Errors.UnprocessableEntity(errors));
+    return;
+  }
+
   let error;
 
   const { phoneNumber, password } = req.body;
@@ -189,25 +196,37 @@ exports.signin = async (req, res, next) => {
   if (!isVerified) {
     const OTP_ACTION = Constants.OTP_ACTION_ACTIVATE_ACCOUNT;
 
-    const OTPData = await OTPManager.send(
-        phoneNumber,
-        OTP_ACTION
-    );
+    const otpToken = OTPManager.generateToken();
+    const message = OTPManager.constructActivationMessage(otpToken);
+
+    let OTPData;
+
+    try {
+      OTPData = await OTPManager.resendOTP( message, phoneNumber, OTP_ACTION );
+    }catch (e) {
+      console.log(e);
+    }
+
+    OTPData = JSON.stringify(OTPData);
+    const otpExpiresIn = moment().add(2, 'h').format();
+
+    await OTPManager.log(phoneNumber, otpToken, otpExpiresIn, OTPData,null,OTP_ACTION);
 
     const data = {
-      tokenId: OTPData.id,
+      token: otpToken,
       phoneNumber: phoneNumber,
       message: "Your account have not been verified"
     }
 
     res.status(401).json(data);
+    return;
   }
 
   let token;
 
   try {
     token = jwt.sign(
-      { userId: user.id, uuid: user.uuid, userType: user.userType },
+      { userId: user.id, userType: user.userType },
       process.env.JWT_SECRET,
       {
         expiresIn: "2h",
@@ -222,7 +241,7 @@ exports.signin = async (req, res, next) => {
   delete user.password;
 
   const data = {
-    token: token,
+    accessToken: token,
     userDetails: user,
   };
   res.status(200).json({ data: data });
@@ -331,30 +350,4 @@ exports.passwordReset = async (req, res, next) => {
   }
 };
 
-exports.toggleAccountState = async (req, res, next) => {
-  ValidateInput.validate(req, res, next);
 
-  const { action, uuid } = req.body;
-
-  const actionArray = [Status.ACTIVATE, Status.DEACTIVATE];
-
-  if (actionArray.includes(action)) {
-    res.send("INCLUDED");
-  }
-
-  res.send("NOT INCLUDED");
-
-  let response;
-
-  try {
-    response = await AccountManager.toggleAccountActivation(uuid, action);
-  } catch (err) {
-    console.log(err);
-    return Error.send(500, "Internal server error", [], next);
-  }
-
-  res.status(200).json({
-    status: "success",
-    message: "Account ",
-  });
-};

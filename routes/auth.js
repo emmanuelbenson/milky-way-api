@@ -13,11 +13,11 @@ const PasswordReset = require("../models/passwordreset");
 router.post(
   "/signup",
   [
-    body("password").not().isEmpty().trim().escape(),
-    body("phoneNumber").not().isEmpty().trim().escape(),
-    body("userType").not().isEmpty().trim().escape(),
-    body("firstName").not().isEmpty().trim().escape(),
-    body("lastName").not().isEmpty().trim().escape(),
+    body("password").not().isEmpty().withMessage("Password is required").trim().escape(),
+    body("phoneNumber").not().isEmpty().withMessage("Phone Number is required").trim().escape(),
+    body("userType").not().isEmpty().withMessage("userType is required").trim().escape(),
+    body("firstName").not().isEmpty().withMessage("First Name is required").trim().escape(),
+    body("lastName").not().isEmpty().withMessage("Last Name is required").trim().escape(),
   ],
   authController.signup
 );
@@ -25,8 +25,8 @@ router.post(
 router.post(
   "/signin",
   [
-    body("phoneNumber").not().isEmpty().trim().escape(),
-    body("password").not().isEmpty().trim().escape(),
+    body("phoneNumber").not().isEmpty().withMessage('Phone Number is required').trim().escape(),
+    body("password").not().isEmpty().withMessage('Password is required').trim().escape(),
   ],
   authController.signin
 );

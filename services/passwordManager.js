@@ -49,8 +49,8 @@ exports.findResetRequestByPhoneNumberOrToken = async ( phoneNumber = '', token =
         resetLog = await PasswordReset.findOne({
             where: {
                 [Op.or]: [
-                    { phoneNumber },
-                    { token }
+                    phoneNumber && { phoneNumber },
+                    token && { token }
                 ]
             }
         });
@@ -68,8 +68,8 @@ exports.findResetRequestByPhoneNumberAndToken = async (phoneNumber, token) => {
         resetLog = await PasswordReset.findOne({
             where: {
                 [Op.and]: [
-                    phoneNumber && { phoneNumber: phoneNumber },
-                    token && { token: token}
+                    { phoneNumber: phoneNumber },
+                    { token: token}
                 ]
             }
         });

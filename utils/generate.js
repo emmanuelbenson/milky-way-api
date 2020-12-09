@@ -19,6 +19,5 @@ exports.randomString = (length = 8) => {
 };
 
 exports.otp = (length = 6) => {
-  const str = Math.random().toString(6).substr(2, length);
-  return str;
+  return Math.random().toString(6).substr(2, length);
 };

@@ -248,17 +248,22 @@ exports.signin = async (req, res, next) => {
 };
 
 exports.resetPassword = async (req, res, next) => {
-  ValidateInput.validate(req, res, next);
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    next(new Errors.UnprocessableEntity(errors));
+    return;
+  }
 
   const { phoneNumber } = req.body;
   let foundAccount;
   try {
     foundAccount = await AccountManager.accountExists(phoneNumber);
+
     if(!foundAccount) {
       const data = {
-        tokenId: '0001100',
+        token: '00000',
         phoneNumber: phoneNumber,
-        message: `OTP have been sent to this phone number if it is registered on our system`,
+        message: `If this number exist in our platform, check it for your OTP`,
         status: "success"
       }
 
@@ -276,17 +281,20 @@ exports.resetPassword = async (req, res, next) => {
 
   try {
     hasActiveReset = await PasswordManager.hasActiveResetRequest(phoneNumber);
-    if(hasActiveReset) {
-      OTPLog = await OTPManager.send(phoneNumber, Config.otpactiontypes.PASSWORD_RESET);
-      const data = {
-        tokenId: OTPLog.id,
-        phoneNumber: phoneNumber,
-        message: `OTP have been sent to this phone number if it is registered on our system`,
-        status: "success"
-      }
 
-      res.status(200).json(data);
-      return;
+    if(hasActiveReset) {
+      OTPLog = await OTPManager.getLatestOTPByPhoneNumberAndActionType(phoneNumber, Config.otpactiontypes.PASSWORD_RESET);
+      if(OTPLog) {
+        const data = {
+          token: OTPLog.dataValues.token,
+          phoneNumber: phoneNumber,
+          message: `OTP have been sent to this phone number if it is registered on our system`,
+          status: "success"
+        }
+
+        res.status(200).json(data);
+        return;
+      }
     }
 
   }catch (e) {
@@ -297,11 +305,22 @@ exports.resetPassword = async (req, res, next) => {
 
   try {
     await PasswordManager.initReset(phoneNumber);
-    OTPLog = await OTPManager.send(phoneNumber, Constants.OTP_ACTION_PASSWORD_RESET);
+  }catch(e) {
+    console.log(e)
+  }
+
+  try {
+    const otpToken = OTPManager.generateToken();
+    let message = OTPManager.constructPasswordResetMessage(otpToken);
+    let otpData = await OTPManager.sendOTP(message, phoneNumber);
+    const otpExpiryTime = OTPManager.getExpirationTime();
+    otpData = JSON.stringify(otpData);
+
+    await OTPManager.log(phoneNumber, otpToken, otpExpiryTime, otpData, null, Constants.OTP_ACTION_PASSWORD_RESET);
 
     const data = {
       phoneNumber: phoneNumber,
-      tokenId: OTPLog.id,
+      token: otpToken,
       message: `OTP have been sent to this phone number if it is registered on our system`,
       status: "success"
     };
@@ -314,7 +333,11 @@ exports.resetPassword = async (req, res, next) => {
 };
 
 exports.passwordReset = async (req, res, next) => {
-  ValidateInput.validate(req, res, next);
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    next(new Errors.UnprocessableEntity(errors));
+    return;
+  }
 
   const { phoneNumber, token, password } = req.body;
 

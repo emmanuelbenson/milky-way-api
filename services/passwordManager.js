@@ -1,4 +1,3 @@
-const Constants = require( "../constants/Constants");
 const Status = require( "../constants/status");
 const AccountManager = require("./accountManager");
 const crypto = require('crypto');
@@ -6,7 +5,6 @@ const bcrypt = require('bcryptjs');
 const moment = require('moment');
 const Errors = require('../libs/errors/errors');
 const PasswordReset = require('../models/passwordreset');
-const User = require('../models/user');
 const {Op} = require("sequelize");
 const TimestampExpiration = require('../utils/timestampExpiration');
 
@@ -39,7 +37,14 @@ exports.hasActiveResetRequest = async (phoneNumber) => {
 }
 
 exports.tokenIsExpired = async (token) => {
-    return TimestampExpiration.check();
+    let resetRequest;
+
+    try {
+        resetRequest = await this.findResetRequestByPhoneNumberOrToken(null, token);
+    }catch (e) {
+        throw e;
+    }
+    return TimestampExpiration.check(resetRequest.dataValues.expiresIn);
 }
 
 exports.findResetRequestByPhoneNumberOrToken = async ( phoneNumber = '', token = '' ) => {

@@ -3,9 +3,9 @@ const Status = require("../constants/status");
 const Constants = require("../constants/Constants");
 const gasStationManager = require("../services/gasStationManager");
 const Error = require("../utils/errors");
-const AuditTrail = require("../services/auditTrailManager");
-
-const ValidateInput = require("../utils/validateInputs");
+const Errors = require("../libs/errors/errors");
+const UtilError = require("../utils/errors");
+const { validationResult } = require("express-validator");
 
 exports.getAll = async (req, res, next) => {
   let stations;
@@ -14,7 +14,8 @@ exports.getAll = async (req, res, next) => {
     stations = await gasStationManager.all();
   } catch (err) {
     console.log(err);
-    return Error.send(500, "Internal server error", [], next);
+    next(new Errors.GeneralError());
+    return;
   }
 
   res.status(200).json({
@@ -24,7 +25,11 @@ exports.getAll = async (req, res, next) => {
 };
 
 exports.add = async (req, res, next) => {
-  ValidateInput.validate(req, res, next);
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    next(new Errors.UnprocessableEntity(errors));
+    return;
+  }
 
   let userId = req.userId;
   const { lat, lng, logoUrl, hours, phone, name, amount } = req.body;
@@ -54,7 +59,8 @@ exports.add = async (req, res, next) => {
     newStation = await gasStationManager.add(data);
   } catch (err) {
     console.log(err);
-    return Error.send(500, "Internal server error", [], next);
+    next(new Errors.GeneralError());
+    return;
   }
 
   res.status(201).json({
@@ -74,11 +80,17 @@ exports.getStation = async (req, res, next) => {
     station = await gasStationManager.find(id);
   } catch (err) {
     console.log(err);
-    return Error.send(500, "Internal server error", [], next);
+    next(new Errors.GeneralError());
+    return;
   }
 
   if (!station) {
-    return Error.send(404, "Gas station not found", [], next);
+    next(
+      new Errors.NotFound(
+        UtilError.parse(null, "Gas station not found", null, "body")
+      )
+    );
+    return;
   }
 
   res.status(200).json(station);
@@ -92,11 +104,17 @@ exports.updateStation = async (req, res, next) => {
     station = await gasStationManager.find(id);
   } catch (err) {
     console.log(err);
-    return Error.send(500, "Internal server error", [], next);
+    next(new Errors.GeneralError());
+    return;
   }
 
   if (!station) {
-    return Error.send(404, "Gas station not found", [], next);
+    next(
+      new Errors.NotFound(
+        UtilError.parse(null, "Gas station not found", null, "body")
+      )
+    );
+    return;
   }
 
   let url, hours, phone, updateResponse;
@@ -129,7 +147,8 @@ exports.updateStation = async (req, res, next) => {
     updateResponse = await gasStationManager.update(id, newData);
   } catch (err) {
     console.log(err);
-    return Error.send(500, "Internal server error", [], next);
+    next(new Errors.GeneralError());
+    return;
   }
 
   if (updateResponse[0] == 1) {
@@ -140,10 +159,8 @@ exports.updateStation = async (req, res, next) => {
     return;
   }
 
-  return Error.send(
-    500,
-    "Could not update station at this moment. Please try again later",
-    [],
-    next
-  );
+  res.status(500).send({
+    status: "success",
+    message: "Could not update station at this moment. Please try again later",
+  });
 };

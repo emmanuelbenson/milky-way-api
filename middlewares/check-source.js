@@ -1,15 +1,22 @@
 require("dotenv").config();
 const Constants = require("../constants/Constants");
 const Errors = require("../libs/errors/errors");
+const UtilError = require("../utils/errors");
+const { validationResult } = require("express-validator");
 
 module.exports = (req, res, next) => {
   if (!req.headers.source) {
-    throw new Errors.BadRequest(
-      "Access denied! Request resource not specified",
-      req.headers.source,
-      "resource",
-      "header"
+    next(
+      new Errors.BadRequest(
+        UtilError.parse(
+          null,
+          "Access denied! Request resource not specified",
+          null,
+          "header"
+        )
+      )
     );
+    return;
   }
 
   const requestSource = req.headers.source;
@@ -17,11 +24,16 @@ module.exports = (req, res, next) => {
   if (requestSource === Constants.MOBILE || requestSource === Constants.WEB) {
     next();
   } else {
-    throw new Errors.BadRequest(
-      "Access denied! Request resource not specified",
-      req.headers.source,
-      "resource",
-      "header"
+    next(
+      new Errors.BadRequest(
+        UtilError.parse(
+          null,
+          "Access denied! Request resource not specified",
+          null,
+          "header"
+        )
+      )
     );
+    return;
   }
 };

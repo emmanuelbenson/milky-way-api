@@ -1,11 +1,17 @@
 require("dotenv").config();
 const jwt = require("jsonwebtoken");
+const Errors = require("../libs/errors/errors");
+const UtilError = require("../utils/errors");
+const { validationResult } = require("express-validator");
 
 module.exports = (req, res, next) => {
   if (!req.headers.authorization) {
-    const error = new Error("Unauthorized");
-    error.statusCode = 401;
-    throw error;
+    next(
+      new Errors.Unauthorized(
+        UtilError.parse(null, "Access denied!", null, null)
+      )
+    );
+    return;
   }
   const token = req.headers.authorization.split(" ")[1];
 
@@ -13,8 +19,10 @@ module.exports = (req, res, next) => {
   try {
     decodedToken = jwt.verify(token, process.env.JWT_SECRET);
   } catch (err) {
-    err.statusCode = 401;
-    throw err;
+    next(
+      new Errors.Unauthorized(UtilError.parse(null, err.message, null, null))
+    );
+    return;
   }
 
   const userId = decodedToken.userId;

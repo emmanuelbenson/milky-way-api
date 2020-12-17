@@ -1,5 +1,5 @@
 require("dotenv").config();
-const Config = require('../config/config.json');
+const Config = require("../config/config.json");
 const bcrypt = require("bcryptjs");
 const { uuid } = require("uuidv4");
 const jwt = require("jsonwebtoken");
@@ -9,11 +9,11 @@ const Status = require("../constants/status");
 const Constants = require("../constants/Constants");
 const OTPManager = require("../services/otpManager");
 const AccountManager = require("../services/accountManager");
-const PasswordManager = require('../services/passwordManager');
+const PasswordManager = require("../services/passwordManager");
 const ValidateInput = require("../utils/validateInputs");
 const Errors = require("../libs/errors/errors");
-const UtilError = require('../utils/errors');
-const { validationResult } = require('express-validator');
+const UtilError = require("../utils/errors");
+const { validationResult } = require("express-validator");
 
 exports.signup = async (req, res, next) => {
   const errors = validationResult(req);
@@ -27,7 +27,9 @@ exports.signup = async (req, res, next) => {
 
   if (!acceptableUserType.includes(userType)) {
     next(
-      new Errors.UnprocessableEntity(UtilError.parse(userType, "Invalid User Type", "userType", "body"))
+      new Errors.UnprocessableEntity(
+        UtilError.parse(userType, "Invalid User Type", "userType", "body")
+      )
     );
     return;
   }
@@ -35,7 +37,11 @@ exports.signup = async (req, res, next) => {
   const { email, password, phoneNumber, firstName, lastName } = req.body;
 
   if (email && !ValidateInput.isEmail(email)) {
-    next(new Errors.UnprocessableEntity( UtilError.parse(email, 'Email is invalid', 'email', 'body') ));
+    next(
+      new Errors.UnprocessableEntity(
+        UtilError.parse(email, "Email is invalid", "email", "body")
+      )
+    );
     return;
   }
 
@@ -50,12 +56,15 @@ exports.signup = async (req, res, next) => {
   }
 
   if (isExists) {
-    next(new Errors.UnprocessableEntity(
+    next(
+      new Errors.UnprocessableEntity(
         UtilError.parse(
-            phoneNumber,
-            "Account already exist",
-            "phoneNumber",
-            "body"))
+          phoneNumber,
+          "Account already exist",
+          "phoneNumber",
+          "body"
+        )
+      )
     );
     return;
   }
@@ -63,9 +72,9 @@ exports.signup = async (req, res, next) => {
   let hashedPassword;
   try {
     hashedPassword = await PasswordManager.hash(password);
-  }catch (e) {
+  } catch (e) {
     console.log(e);
-    next( new Errors.GeneralError());
+    next(new Errors.GeneralError());
     return;
   }
 
@@ -87,13 +96,11 @@ exports.signup = async (req, res, next) => {
     return;
   }
 
-  await AccountManager.addProfile(
-      {
-        firstName: firstName,
-        lastName: lastName,
-        userId: newUser.dataValues.id,
-      }
-  );
+  await AccountManager.addProfile({
+    firstName: firstName,
+    lastName: lastName,
+    userId: newUser.dataValues.id,
+  });
 
   const data = {};
   data.statusCode = 201;
@@ -109,24 +116,24 @@ exports.signup = async (req, res, next) => {
 
   const message = OTPManager.constructActivationMessage(otpToken);
 
-  let  sendOTPResponse;
+  let sendOTPResponse;
 
   try {
     sendOTPResponse = await OTPManager.sendOTP(message, phoneNumber);
-  }catch (e) {
-    console.log(e)
+  } catch (e) {
+    console.log(e);
   }
 
-  const expiresIn = await moment().add(2, 'h').format();
+  const expiresIn = await moment().add(2, "h").format();
 
   await OTPManager.log(
-      phoneNumber,
-      otpToken,
-      expiresIn,
-      JSON.stringify(sendOTPResponse),
-      null,
-      OTP_ACTION,
-      Status.PENDING
+    phoneNumber,
+    otpToken,
+    expiresIn,
+    JSON.stringify(sendOTPResponse),
+    null,
+    OTP_ACTION,
+    Status.PENDING
   );
 
   data.data.tokenId = uuid();
@@ -158,12 +165,16 @@ exports.signin = async (req, res, next) => {
   }
 
   if (!foundUser) {
-    next(new Errors.NotFound(
+    next(
+      new Errors.NotFound(
         UtilError.parse(
-            "",
-            "These credentials do not match our records",
-            "",
-            "")));
+          "",
+          "These credentials do not match our records",
+          "",
+          ""
+        )
+      )
+    );
     return;
   }
 
@@ -180,13 +191,15 @@ exports.signin = async (req, res, next) => {
   }
 
   if (!hashedPassword) {
-    next(new Errors.NotFound(
+    next(
+      new Errors.NotFound(
         UtilError.parse(
-            "",
-            "These credentials do not match our records",
-            "",
-            "")
+          "",
+          "These credentials do not match our records",
+          "",
+          ""
         )
+      )
     );
     return;
   }
@@ -202,21 +215,28 @@ exports.signin = async (req, res, next) => {
     let OTPData;
 
     try {
-      OTPData = await OTPManager.resendOTP( message, phoneNumber, OTP_ACTION );
-    }catch (e) {
+      OTPData = await OTPManager.resendOTP(message, phoneNumber, OTP_ACTION);
+    } catch (e) {
       console.log(e);
     }
 
     OTPData = JSON.stringify(OTPData);
-    const otpExpiresIn = moment().add(2, 'h').format();
+    const otpExpiresIn = moment().add(2, "h").format();
 
-    await OTPManager.log(phoneNumber, otpToken, otpExpiresIn, OTPData,null,OTP_ACTION);
+    await OTPManager.log(
+      phoneNumber,
+      otpToken,
+      otpExpiresIn,
+      OTPData,
+      null,
+      OTP_ACTION
+    );
 
     const data = {
       token: otpToken,
       phoneNumber: phoneNumber,
-      message: "Your account have not been verified"
-    }
+      message: "Your account have not been verified",
+    };
 
     res.status(401).json(data);
     return;
@@ -259,18 +279,18 @@ exports.resetPassword = async (req, res, next) => {
   try {
     foundAccount = await AccountManager.accountExists(phoneNumber);
 
-    if(!foundAccount) {
+    if (!foundAccount) {
       const data = {
-        token: '00000',
+        token: "00000",
         phoneNumber: phoneNumber,
         message: `If this number exist in our platform, check it for your OTP`,
-        status: "success"
-      }
+        status: "success",
+      };
 
       res.status(200).json(data);
       return;
     }
-  }catch (e) {
+  } catch (e) {
     console.log(e);
     next(new Errors.GeneralError());
     return;
@@ -282,22 +302,24 @@ exports.resetPassword = async (req, res, next) => {
   try {
     hasActiveReset = await PasswordManager.hasActiveResetRequest(phoneNumber);
 
-    if(hasActiveReset) {
-      OTPLog = await OTPManager.getLatestOTPByPhoneNumberAndActionType(phoneNumber, Config.otpactiontypes.PASSWORD_RESET);
-      if(OTPLog) {
+    if (hasActiveReset) {
+      OTPLog = await OTPManager.getLatestOTPByPhoneNumberAndActionType(
+        phoneNumber,
+        Config.otpactiontypes.PASSWORD_RESET
+      );
+      if (OTPLog) {
         const data = {
           token: OTPLog.dataValues.token,
           phoneNumber: phoneNumber,
           message: `OTP have been sent to this phone number if it is registered on our system`,
-          status: "success"
-        }
+          status: "success",
+        };
 
         res.status(200).json(data);
         return;
       }
     }
-
-  }catch (e) {
+  } catch (e) {
     console.log(e);
     next(new Errors.GeneralError());
     return;
@@ -305,8 +327,8 @@ exports.resetPassword = async (req, res, next) => {
 
   try {
     await PasswordManager.initReset(phoneNumber);
-  }catch(e) {
-    console.log(e)
+  } catch (e) {
+    console.log(e);
   }
 
   try {
@@ -316,13 +338,20 @@ exports.resetPassword = async (req, res, next) => {
     const otpExpiryTime = OTPManager.getExpirationTime();
     otpData = JSON.stringify(otpData);
 
-    await OTPManager.log(phoneNumber, otpToken, otpExpiryTime, otpData, null, Constants.OTP_ACTION_PASSWORD_RESET);
+    await OTPManager.log(
+      phoneNumber,
+      otpToken,
+      otpExpiryTime,
+      otpData,
+      null,
+      Constants.OTP_ACTION_PASSWORD_RESET
+    );
 
     const data = {
       phoneNumber: phoneNumber,
       token: otpToken,
       message: `OTP have been sent to this phone number if it is registered on our system`,
-      status: "success"
+      status: "success",
     };
 
     res.status(200).json(data);
@@ -345,18 +374,17 @@ exports.passwordReset = async (req, res, next) => {
 
   try {
     tokenIsExpired = await PasswordManager.tokenIsExpired(token);
-    if(tokenIsExpired) {
-      next(new Errors.Forbidden(
-          UtilError.parse(
-              token,
-              "Token has expired",
-              "token",
-              "body")));
+    if (tokenIsExpired) {
+      next(
+        new Errors.Forbidden(
+          UtilError.parse(token, "Token has expired", "token", "body")
+        )
+      );
       return;
     }
-  }catch (e) {
+  } catch (e) {
     console.log(e);
-    next( new Errors.GeneralError());
+    next(new Errors.GeneralError());
     return;
   }
 
@@ -369,8 +397,6 @@ exports.passwordReset = async (req, res, next) => {
     });
   } catch (e) {
     console.log(e);
-    next( new Errors.GeneralError());
+    next(new Errors.GeneralError());
   }
 };
-
-

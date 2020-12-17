@@ -2,13 +2,18 @@ require("dotenv").config();
 const ValidateInput = require("../utils/validateInputs");
 const Status = require("../constants/status");
 const Constants = require("../constants/Constants");
-const Error = require("../utils/errors");
-const responseSuccess = require("../constants/responseSuccess");
+const Errors = require("../libs/errors/errors");
+const UtilError = require("../utils/errors");
+const { validationResult } = require("express-validator");
 
 const addressMgr = require("../services/addressManager");
 
 exports.add = async (req, res, next) => {
-  ValidateInput.validate(req, res, next);
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    next(new Errors.UnprocessableEntity(errors));
+    return;
+  }
 
   const { street, lga, state, lng, lat } = req.body;
 
@@ -20,11 +25,17 @@ exports.add = async (req, res, next) => {
     foundAddress = await addressMgr.findByUserId(userId);
   } catch (err) {
     console.log(err);
-    Error.send(500, "Internal server error", [], next);
+    next(new Errors.GeneralError());
+    return;
   }
 
   if (foundAddress) {
-    Error.send(403, "You already have an address", [], next);
+    next(
+      new Errors.BadRequest(
+        UtilError.parse("", "You already have an address", "", "")
+      )
+    );
+    return;
   }
 
   let saveResponse;
@@ -43,7 +54,11 @@ exports.add = async (req, res, next) => {
 };
 
 exports.update = async (req, res, next) => {
-  ValidateInput.validate(req, res, next);
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    next(new Errors.UnprocessableEntity(errors));
+    return;
+  }
 
   const updateFields = {};
   const userId = req.body.userId;

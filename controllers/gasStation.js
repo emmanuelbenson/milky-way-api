@@ -20,9 +20,9 @@ exports.getAll = async (req, res, next) => {
 
   const features = stations.map((station) => {
     return {
-      geometry: station.geometry,
+      geometry: JSON.parse(station.geometry),
       type: station.type,
-      properties: station.properties,
+      properties: JSON.parse(station.properties),
     };
   });
 
@@ -48,19 +48,20 @@ exports.add = async (req, res, next) => {
   const { lat, lng, logoUrl, hours, phone, name, amount } = req.body;
 
   try {
-    const found = gasStationManager.findByUserId(userId);
+    const found = await gasStationManager.findByUserId(userId);
     if (found) {
       next(
         new Errors.Forbidden(
           UtilError.parse(null, "You already have a station", null, null)
         )
       );
+      return;
     }
   } catch (error) {}
 
   const geometry = {
     type: Constants.GEOMETRY_TYPE,
-    coordinates: [parseFloat(lat), parseFloat(lng)],
+    coordinates: [parseFloat(lng), parseFloat(lat)],
   };
   const type = Constants.MAP_STATION_TYPE;
   const properties = {

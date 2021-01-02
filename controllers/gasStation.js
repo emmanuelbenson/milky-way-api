@@ -18,9 +18,22 @@ exports.getAll = async (req, res, next) => {
     return;
   }
 
+  const features = stations.map((station) => {
+    return {
+      geometry: JSON.parse(station.geometry),
+      type: station.type,
+      properties: JSON.parse(station.properties),
+    };
+  });
+
+  const data = {
+    type: "FeatureCollection",
+    features: features,
+  };
+
   res.status(200).json({
     status: Status.SUCCESS,
-    data: stations,
+    data,
   });
 };
 
@@ -34,7 +47,22 @@ exports.add = async (req, res, next) => {
   let userId = req.userId;
   const { lat, lng, logoUrl, hours, phone, name, amount } = req.body;
 
-  const geometry = { type: Constants.GEOMETRY_TYPE, coordinates: [lat, lng] };
+  try {
+    const found = await gasStationManager.findByUserId(userId);
+    if (found) {
+      next(
+        new Errors.Forbidden(
+          UtilError.parse(null, "You already have a station", null, null)
+        )
+      );
+      return;
+    }
+  } catch (error) {}
+
+  const geometry = {
+    type: Constants.GEOMETRY_TYPE,
+    coordinates: [parseFloat(lng), parseFloat(lat)],
+  };
   const type = Constants.MAP_STATION_TYPE;
   const properties = {
     logo: logoUrl,

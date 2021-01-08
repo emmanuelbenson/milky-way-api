@@ -46,6 +46,7 @@ router.post(
 );
 
 router.get("/:id", isAuth, controller.getStation);
+router.get("/my-station", isAuth, controller.getStationByUserId);
 router.post("/:id", isAuth, isVendor, controller.updateStation);
 
 module.exports = router;

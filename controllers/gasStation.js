@@ -98,6 +98,31 @@ exports.add = async (req, res, next) => {
   });
 };
 
+exports.getStationByUserId = async (req, res, next) => {
+  const userId = req.userId;
+
+  let station;
+
+  try {
+    station = await gasStationManager.findByUserId(userId);
+  } catch (err) {
+    console.log(err);
+    next(new Errors.GeneralError());
+    return;
+  }
+
+  if (!station) {
+    next(
+      new Errors.NotFound(
+        UtilError.parse(null, "Gas station not found", null, "body")
+      )
+    );
+    return;
+  }
+
+  res.status(200).json(station);
+};
+
 exports.getStation = async (req, res, next) => {
   const userId = req.userId;
   const { id } = req.params;

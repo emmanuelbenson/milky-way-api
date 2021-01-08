@@ -8,6 +8,7 @@ const moment = require("moment");
 const Status = require("../constants/status");
 const Constants = require("../constants/Constants");
 const OTPManager = require("../services/otpManager");
+const AddressManager = require("../services/addressManager");
 const AccountManager = require("../services/accountManager");
 const PasswordManager = require("../services/passwordManager");
 const ValidateInput = require("../utils/validateInputs");
@@ -264,6 +265,12 @@ exports.signin = async (req, res, next) => {
     accessToken: token,
     userDetails: user,
   };
+
+  if (parseInt(user.userType) === Constants.CUSTOMER_TYPE) {
+    const address = await AddressManager.findByUserId(user.id);
+    data["address"] = address && address.dataValues;
+  }
+
   res.status(200).json({ data: data });
 };
 

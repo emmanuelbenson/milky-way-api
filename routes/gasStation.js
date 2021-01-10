@@ -7,6 +7,8 @@ const isAuth = require("../middlewares/is-auth");
 const isVendor = require("../middlewares/is-vendor");
 
 router.get("/", isAuth, controller.getAll);
+router.get("/my-station", isAuth, controller.getStationByUserId);
+router.get("/:id", isAuth, controller.getStation);
 
 router.post(
   "/",
@@ -45,8 +47,6 @@ router.post(
   controller.add
 );
 
-router.get("/:id", isAuth, controller.getStation);
-router.get("/my-station", isAuth, controller.getStationByUserId);
 router.post("/:id", isAuth, isVendor, controller.updateStation);
 
 module.exports = router;

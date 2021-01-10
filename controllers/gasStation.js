@@ -23,6 +23,7 @@ exports.getAll = async (req, res, next) => {
       geometry: JSON.parse(station.geometry),
       type: station.type,
       properties: JSON.parse(station.properties),
+      storeId: station.id,
     };
   });
 

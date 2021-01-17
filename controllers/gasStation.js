@@ -171,31 +171,22 @@ exports.updateStation = async (req, res, next) => {
     return;
   }
 
-  let url, hours, phone, updateResponse;
+  let updateResponse;
+  const p = JSON.parse(station.properties);
 
-  const properties = JSON.parse(station.dataValues.properties);
-  const geometry = JSON.parse(station.dataValues.geometry);
-
-  const lat = req.body.lat ? req.body.lat : geometry.coordinates[0];
-  const lng = req.body.lng ? req.body.lng : geometry.coordinates[1];
-
-  geometry.coordinates = [lat, lng];
-
-  const newGeometry = JSON.stringify(geometry);
-
-  properties.logo = req.body.logo ? req.body.logo : properties.logo;
-  properties.hours = req.body.hours ? req.body.hours : properties.hours;
-  properties.name = req.body.name ? req.body.name : properties.name;
-  properties.phone = req.body.phone ? req.body.phone : properties.phone;
-
-  const newProperties = JSON.stringify(properties);
+  const properties = JSON.stringify({
+    logo: p.logo,
+    hours: req.body.hours ? req.body.hours : p.hours,
+    name: p.name,
+    phone: req.body.phone ? req.body.phone : p.phone,
+  });
 
   const newData = {
-    geometry: newGeometry,
-    name: req.body.name ? req.body.name : station.dataValues.name,
     amount: req.body.amount ? req.body.amount : station.dataValues.amount,
-    properties: newProperties,
+    properties: properties,
   };
+
+  console.log(newData);
 
   try {
     updateResponse = await gasStationManager.update(id, newData);

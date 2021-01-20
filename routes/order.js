@@ -1,11 +1,10 @@
 const express = require("express");
 const router = express.Router();
 
-const { validationResult, body } = require("express-validator");
-
 const orderController = require("../controllers/order");
 const isAuth = require("../middlewares/is-auth");
 const isCustomer = require("../middlewares/is-customer");
+const { body } = require("express-validator");
 
 router.post(
   "/create",

@@ -43,7 +43,9 @@ exports.create = async (orderObj = {}, orderDetailsObj = {}) => {
   const user = await AccountManager.find(orderObj.userId);
 
   const customer = {
-    email: user.dataValues.email,
+    email: user.dataValues.email
+      ? user.dataValues.email
+      : user.dataValues.phoneNumber,
     phoneNumber: user.dataValues.phoneNumber,
     name: user.profile.firstName + " " + user.profile.lastName,
   };
